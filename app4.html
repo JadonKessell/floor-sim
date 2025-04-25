@@ -7,33 +7,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-	table {
-		
-	margin: 0px;
-	font: inherit;
+
+	body {
+		font-family: "Lucida Console", monospace;
+		padding: 0px;
+		border: 0px;
+		padding: 0px;
+		margin: 8px;
 	}
+
+	table {
+		margin: 0px;
+		font: inherit;
+	}
+
 	td {
 		width: 30%;
 		margin: 0px;
+		border-style: solid;
+		border-width: 1px;
 		
 		vertical-align:top;
-	}
-	p {
-	font-family: "Lucida Console", monospace;
-	text-align: right;
-	padding: 10px;
-	}
-	h1 {
-	font-family: "Lucida Console", monospace;
-	text-align: center;
-	padding: 0px;
-	margin: 0px;
-	}
-	hr {
 		
-	padding: 0px;
-	margin: 0px;
+		align-items: center;
 	}
+
+	p {
+		text-align: right;
+		padding: 10px;
+	}
+
+	h1 {
+		text-align: center;
+		padding: 0px;
+		margin: 0px;
+	}
+
 	.assignButton {
 		background-color: #cccee0af; 
 		border: 1px;
@@ -58,9 +67,8 @@
 		border: 1px;
 		color: white;
 		text-align: center;
-		text-decoration: none;
 		border-radius: 8px;
-		width: 160px;
+		width: 140px;
 		align-items: center;
 		font-size: 14px;
 		margin: 1px;
@@ -113,15 +121,29 @@
 		float:left;
 		
 	}
-	.gamecanvas {
-		
+	.techcanvas {
 		background-color: azure;
 		border: 1px;
 		color: rgb(0, 0, 0);
 		text-align: center;
 		text-decoration: none;
 		border-radius: 8px;
-		width: 140px;
+		width: 40px;
+		height: 40px;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.gamecanvas {
+		
+		background-color: azure;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		width: 130px;
 		align-items: center;
 		font-size: 14px;
 		border-style:solid;
@@ -133,12 +155,27 @@
 		text-align: center;
 		padding: 10px;
 	}
-	body {
-		padding: 0px;
-		border: 0px;
-		padding: 0px;
-		margin: 8px;
 
+	.invisTechTD {
+		
+		background-color: none;
+		border: 0px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		width: 130px;
+		align-items: center;
+	}
+	.assignedTechCanvas:hover {
+		background-color: yellow;
+	}
+	.assignedTechCanvas {
+		border: 1px solid rgb(27, 59, 59);
+		border-radius: 30px;
+	}
+	.assignedToolCanvas {
+	
+		background-color: azure;
 	}
 </style>
 
@@ -151,6 +188,7 @@ let animTimer = 0;
 let debugSetting = 0;
 let debug_FAST_MODE = false;
 let debugFlag1 = false;
+let userSel = 0;
 
 let gt;
 let cvs;
@@ -162,7 +200,7 @@ let roleArray = [
 	"Trainee",
 	"PCFS",
 	"Lead",
-	"Engineer Tech"
+	"MFE"
 ]
 
 let names = [
@@ -368,7 +406,8 @@ let names = [
 'Brian',
 'Bryon',
 'Ron',
-'Cody'
+'Cody',
+"D'ondre"
 ]
 
 
@@ -377,29 +416,38 @@ let names = [
 
 function init () {
 	gt = document.getElementById("newGUI");
+	debug_console = document.getElementById("debug_console");
+
+	company.tools.push(new Tool());
+	company.tools.push(new Tool());
+	company.bays.push(new Bay());
+	company.bays.push(new Bay());
+	hireTech(0);
+	hireTech(0);
+	hireTech(0);
+	company.techs[2].role = 3;
+	assignTech(0, 0);
+	assignTech(1, 0);
+	assignTech(2, 0);
+	company.bays[0].assignedTool = 0;
+	company.bays[1].assignedTool = 1;
+	
+	let f="<button onclick='newTest()'>newtest</button><button onclick='buyNewBay()'>Buy new bay for 5,000</button>\n<button onclick='payForRandShortage()'>Buy random Shortage for 1,000</button>\n<button onclick='hireTech(5000)'>Hire new random tech for 5,000</button>"
+
+	document.getElementById("gui2").innerHTML = f;
+
+	drawControlButtons(0);
 
 	main_loop = setInterval(progressTime, 1000); //1000 is 1 sec
-	
-	company.tools.push(new Tool());
-	hireTech(0);
-	hireTech(0);
-	hireTech(0);
-	assignTech(0,0);
-	assignTech(1,0);
-	assignTech(2,0);
-	company.techs[2].role = 3;
-	
-let f="<button onclick='buyNewBay()'>Buy new bay for 5,000</button>\n<button onclick='payForRandShortage()'>Buy random Shortage for 1,000</button>\n<button onclick='hireTech(5000)'>Hire new random tech for 5,000</button>"
-
-document.getElementById("gui2").innerHTML = f;
-
 }
+
+
 
 const company = {
 	money:20000,
 	shift:1,
 	time:0,
-	bays:2,
+	bays:[],
 	tools:[],
 	techs:[],
 	backlog:[],
@@ -410,9 +458,44 @@ const company = {
 	adjustMoney: function(m){
 		this.money = this.money - m
 
-		if(this.money <= 0) {gameOver () }
+		if(this.money <= 0) {gameOver() }
+	},
+	printBays: function() {
+		let s = "bays:"+this.bays.length+"<br>";
+
+		for (var i = 0; i < this.bays.length; i++) {
+			s=s+this.bays[i].print()+"<br>";
+		}
+		return s;
 	}
 }
+
+function Bay() {
+	this.assignedTool = -1; //number
+	this.assignedTechs = []; //number array
+
+	this.assignTechToBay = function(tech_i) {
+		const maxTechsInBay = 3;
+
+		if(this.assignedTechs.length < maxTechsInBay) {
+			this.assignedTechs.push(tech_i);
+			return true;
+		}
+		else {
+			addAct("!Can't assign another Tech on this tool!");
+			return false;
+		}
+	}
+	this.print = function() {
+		let s = "";
+		s=s+"Tool: " + this.assignedTool + "; Techs: ";
+		for (let i = 0; i < this.assignedTechs.length; i++) {
+			s=s+this.assignedTechs[i]+" ";
+		}
+		return s;
+	}
+}
+
 
 function Tech() {
 	this.name				 = names[Math.floor(Math.random() * names.length)];
@@ -423,9 +506,12 @@ function Tech() {
 	this.testProf			 = Math.floor(Math.random() * 3)+1;
 	this.qtProf				 = Math.floor(Math.random() * 3)+1;
 	this.testProfGrowth	 = Math.floor(Math.random() * 8)+1;
+	this.adminProf				 = 1;
+	this.adminProfGrowth	 = Math.floor(Math.random() * 8)+1;
 	this.qtProfGrowth	 = Math.floor(Math.random() * 8)+1;
 	this.morale				 = 10;
 	this.lastProg			 = 0;
+	this.assignedTo			 = -1;
 	this.role				 = 0;
 	if(chance(10)) {
 		this.role	= 1;
@@ -435,7 +521,6 @@ function Tech() {
 	if(this.role==1) this.wage = this.wage + 2;
 
 	this.reliability		 = Math.floor(Math.random() * 9);
-	this.assignedTo			 = -1;
 	this.gainExp = function(ex) {
 		this.experiencePerc = this.experiencePerc + ex;
 		if(this.experiencePerc >= 100) this.levelUp();
@@ -463,6 +548,33 @@ function Tech() {
 
 }
 
+
+/*
+different Tool ideas
+*/
+const ToolArray = [
+	[
+		"Lite-Saber", // easy tool
+		1400, // work unit points
+		50, //num of OPs
+		70, //instruction eff
+	],
+	[
+		"Scimitar", // bulk tool
+		5000, // work unit points
+		90, //num of OPs
+		70, //instruction eff
+	],
+	[
+		"Claymore", // difficult tool
+		9600, // work unit points
+		30, //num of OPs
+		70, //instruction eff
+	],
+];
+
+
+
 function Tool() {
 	this.ben =""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) 
 	this.perc = 0;
@@ -471,24 +583,7 @@ function Tool() {
 	this.inTest = false;
 	this.isComplete = false;
 	this.startingShift = company.shift;
-	this.techsOnTool = [];
 	this.print = function() {
-		let c = "A";
-		if (this.inTest) c = "T";
-		let testColor = "#d71";
-		let col = "#1c1";
-		if (this.inTest) col = testColor;
-		
-		let s = "<hr>BEN: "+
-		this.ben+"\nPercent: " + c + Math.floor(this.perc)+"\n"+
-		drawBar(this.perc, 100, 8, "⯀", col, "#000") + 
-		"\nShortages: "+this.shortages+
-		"\nPassed ILQ: "+this.passedILQnum+
-		"\n\nStarting Shift: " +this.startingShift+"\n<hr>\n";
-		
-		return s;
-	}
-	this.print2 = function() {
 		let c = "A";
 		if (this.inTest) c = "T";
 		let testColor = "#d71";
@@ -497,7 +592,7 @@ function Tool() {
 		
 		let s = "BEN: "+
 		this.ben+"\nPercent: " + c + Math.floor(this.perc)+"\n"+
-		drawBar(this.perc, 100, 8, "⯀", col, "#000") + 
+		drawBar(this.perc, 100, 8, "█", col, "#000") + 
 		"\nShortages: "+this.shortages+
 		"\nPassed ILQ: "+this.passedILQnum+
 		"\n\nStarting Shift: " +this.startingShift+"";
@@ -595,44 +690,46 @@ function chance(perc) {
 function hireTech(cost) {
 	company.techs.push(new Tech());
 	//Easter Egg
-	if(chance(5)) {
-		let n = company.techs.length-1
-		company.techs[n].assembProf=0;
-		company.techs[n].testProf=0;
-		company.techs[n].assembProfGrowth=9;
-		company.techs[n].testProfGrowth=9;
-		company.techs[n].name="Patrick Star";
-	}
-	if(chance(1)) {
-		let n = company.techs.length-1
-		company.techs[n].assembProf=0;
-		company.techs[n].testProf=8;
-		company.techs[n].assembProfGrowth=0;
-		company.techs[n].testProfGrowth=9;
-		company.techs[n].name="Cool Ron";
-	}
-	if(chance(1)) {
-		let n = company.techs.length-1
-		company.techs[n].assembProf=7;
-		company.techs[n].testProf=7;
-		company.techs[n].assembProfGrowth=1;
-		company.techs[n].testProfGrowth=1;
-		company.techs[n].name="Ron Shawn";
-	}
-	if(chance(1)) {
-		let n = company.techs.length-1
-		company.techs[n].assembProf=2;
-		company.techs[n].testProf=7;
-		company.techs[n].assembProfGrowth=2;
-		company.techs[n].testProfGrowth=6;
-		company.techs[n].name="Other Sean";
+	if(chance(3)) {
+
+		if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=0;
+			company.techs[n].testProf=0;
+			company.techs[n].assembProfGrowth=9;
+			company.techs[n].testProfGrowth=9;
+			company.techs[n].name="Patrick Star";
+		}
+		else if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=0;
+			company.techs[n].testProf=8;
+			company.techs[n].assembProfGrowth=0;
+			company.techs[n].testProfGrowth=9;
+			company.techs[n].name="Cool Ron";
+		}
+		else if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=7;
+			company.techs[n].testProf=7;
+			company.techs[n].assembProfGrowth=1;
+			company.techs[n].testProfGrowth=1;
+			company.techs[n].name="Ron Shawn";
+		}
+		else if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=2;
+			company.techs[n].testProf=7;
+			company.techs[n].assembProfGrowth=2;
+			company.techs[n].testProfGrowth=6;
+			company.techs[n].name="Other Sean";
+		}
 	}
 	company.adjustMoney(cost);
-	
-	redraw();
 }
 
 function payForRandShortage() {
+	/*
 	let rand = Math.floor(Math.random() * company.tools.length)
 	
 	if(company.tools[rand].shortages > 0) {
@@ -640,20 +737,45 @@ function payForRandShortage() {
 		company.money = company.money - 1000;
 		addAct("Paid for shortage on " + company.tools[rand].ben);
 	}
-	redraw();
+	redraw();*/
+		addAct("Currently removed feature");
 }
 
 function buyNewBay() {
 	company.money = company.money - 5000;
-	company.bays++;
+	company.bays.push(new Bay());
 	redraw();
 }
 
 function gameOver () {
 	
-document.getElementById("game").innerHTML = "GAME OVER";
+//document.getElementById("body").innerHTML = "GAME OVER";
+alert("Game Over");
 clearInterval(main_loop);
 }
+
+
+function newTest() {
+	company.tools.push(new Tool());
+	
+	company.bays[1].assignedTool = company.tools.length - 1;
+
+	gameOver();
+}
+
+
+
+
+function drawControlButtons(sel) {
+	let e = document.getElementById("controlButtons");
+	e.innerHTML = "Tech #: "+sel+"\n<button onclick='btn_fireTech(" + sel + ")'>Fire</button>"+
+		"<button onclick='btn_giveTechRaise(" + sel + ")'>Give raise</button>\n"+
+		"<button onclick='promoteQT("+ sel +")'>Promote to QT</button>"+
+		"<button onclick='promoteTest("+ sel +")'>Promote to Test</button>";
+}
+
+
+
 
 function drawGUI() {
 let g = "\n"+
@@ -662,7 +784,7 @@ let g = "\n"+
 "Time: " + company.time+"\n"+
 "Tools: " + company.tools.length + "\n"+
 "Techs: " + company.techs.length + "\n"+
-"Bays: " + company.bays + "\n" +
+"Bays: " + company.bays.length + "\n" +
 "Backlog: " + company.backlog.length + "\n";
 
 
@@ -694,45 +816,70 @@ for(let i = 0; i < company.tools.length; i++) {
 }
 
 function drawNewGUI() {
-	let sss = "<tr>";
+	if(company.bays.length > 0) {
+		let sss = "<tr>";
 
-	for(let i = 0; i <company.bays; i++) {
+		for(let i = 0; i < company.bays.length; i++) {
 
-		sss=sss+"<td class='gametable'><p class='gameP' id='bay"+ i +"'>BEN: ________</p></td>";
-	}
-	sss=sss+"</tr><tr>";
+			sss=sss+"<td class='gametable'><p class='gameP' id='bay"+ i +"'>Bay "+(i+1)+"<br>BEN: ________</p></td>";
+			
+		}
+		sss=sss+"</tr><tr>";
 
-	for(let i = 0; i <company.bays; i++) {
+		for(let i = 0; i < company.bays.length; i++) {
 
-		sss=sss+"<td class='gamecanvas'><canvas style='background-color: azure;' id='c" + i + "' width='130px' height='180' style='border:1px solid grey'></canvas></td>";
-	}
-	sss=sss+"</tr>";
+			sss=sss+"<td class='gamecanvas'>"+
+			"<canvas class='assignedToolCanvas' id='c" + i + "' width='130' height='120'></canvas></td>";
+			
+		}
+		sss=sss+"</tr><tr>";
+
+		for(let i = 0; i < company.bays.length; i++) {
+
+			//let ts = " style='position: relative;background-position-x: 3;'";
+			sss=sss+"<td class='invisTechTD'>"+
+			"<canvas class='assignedTechCanvas' id='t" + i + "' width='44' height='75'></canvas>"+
+			"<canvas class='assignedTechCanvas' id='tt" + i + "' width='44' height='75'></canvas>"+
+			"<canvas class='assignedTechCanvas' id='ttt" + i + "' width='44' height='75'></canvas>"+
+			"</td>";
+		}
+		sss=sss+"</tr>";
 
 
-	gt.innerHTML = sss;
-	let pb;
-	
-	for(let i = 0; i < company.tools.length; i++) {
+		gt.innerHTML = sss;
+		let pb;
 		
-		cvs = document.getElementById("c"+i);
-		ctxI = cvs.getContext("2d");
-		//setDPI(cvs,96*4)
-
-		drawINDVCanvasGUI(i);
-		pb =  document.getElementById("bay"+i);
-		pb.innerHTML =  company.tools[i].print2();
+		for(let i = 0; i < company.bays.length; i++) {
+			if(company.bays[i].assignedTool > -1) {
+				cvs = document.getElementById("c"+i);
+				ctxI = cvs.getContext("2d");
+				setDPI(cvs,96*4);
+				
+				drawINDVCanvasGUI(i);
+				pb =  document.getElementById("bay"+i);
+				pb.innerHTML =  company.tools[company.bays[i].assignedTool].print();
+			}
+		}
 	}
 }
 
 function drawINDVCanvasGUI(i) {
 	ctxI.clearRect(0, 0, cvs.width, cvs.height);
 	ctxI.fillStyle = "#000";
-	
-	drawToolShape(10, 10, company.tools[i].perc, company.tools[i].inTest,ctxI);
+	let tool_i = company.bays[i].assignedTool;
+	if(tool_i > -1) {
+		drawToolShape(10, 10, company.tools[tool_i].perc, company.tools[tool_i].inTest,ctxI);
 
-	for(let aa = 0; aa < company.tools[i].techsOnTool.length; aa++) {
-		let ii = company.tools[i].techsOnTool[aa];
-		drawTechShape(16+(aa*40), 150,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
+		let t_id = "";
+		for(let aa = 0; aa < company.bays[i].assignedTechs.length; aa++) {
+			t_id = t_id + "t";
+			cvs = document.getElementById(t_id+i);
+			ctxI = cvs.getContext("2d");
+			setDPI(cvs,96*4);
+
+			let ii = company.bays[i].assignedTechs[aa];
+			drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
+		}
 	}
 
 }
@@ -897,7 +1044,7 @@ function toggleSpeed() {
 	debugFlag1=true;
 }
 
-function progressTime() {
+function progressHour() {
 	if(debugFlag1) {
 		if(!debug_FAST_MODE) {
 			clearInterval(main_loop);
@@ -915,31 +1062,104 @@ function progressTime() {
 	if(company.time > 11) {
 		newShift()
 	}
+}
 
-	if(company.tools.length < company.bays) {
-		if(chance(10))
-			company.tools.push(new Tool());
-	}
 
-	doWorkOnTool();
+
+
+
+function completeTool(i) {
+	let completionMoney = 15000;
+	addAct(company.tools[i].ben + " was completed in " + (company.shift-company.tools[i].startingShift)+" shift(s). Added "+completionMoney+" to Money.")
+	pop_i(company.tools,i);
+	company.money = company.money + completionMoney;
+}
+
+
+
+
+function progressTime() {
+	
+	progressHour();
+	doWorkEachBay();
 
 	for(let i = 0; i < company.tools.length; i++) {
-		
 
 		if(company.tools[i].isComplete) {
-			let completionMoney = 15000;
-			addAct(company.tools[i].ben + " was completed in " + (company.shift-company.tools[i].startingShift)+" shift(s). Added "+completionMoney+" to Money.")
-			unassignAllTechsFromTool(i);
-			pop_i(company.tools,i);
-			company.money = company.money + completionMoney;
-			
+			completeTool(i);
 		}
 	}
 
 	redraw();
 }
 
-function doWorkOnTool() {
+
+let cheatArray = [
+	"testProf",
+	"qtProf",
+	"assembProf"
+];
+
+function doTechWork(req_role,tool_i,techs_arr) {
+	let prog = 0;
+
+	let total_prog = 0;
+
+	for(let i = 0; i < techs_arr.length; i++) {
+		if(req_role == -1 || company.techs[techs_arr[i]].role == req_role) {
+			let varname = cheatArray[req_role];
+			if(req_role==-1)
+				varname = cheatArray[2];
+			prog = (company.techs[techs_arr[i]][varname] / 8)
+			
+			prog = prog * (company.techs[i].morale / 10);
+			company.tools[tool_i].increasePerc(prog);
+
+			company.techs[techs_arr[i]].gainExp((prog * 3));
+			company.techs[techs_arr[i]].lastProg = prog;
+		}
+		total_prog += prog;
+		prog = 0;
+	}
+
+	return total_prog;
+}
+
+function doWorkEachBay() {
+	let total_prog = 0;
+
+	for(let i = 0; i < company.bays.length; i++) {
+
+		let tool_i = company.bays[i].assignedTool;
+
+		if(tool_i > -1 && tool_i < company.tools.length) {
+			if(company.tools[tool_i].inTest) {
+				//TEST
+				total_prog += doTechWork(1,tool_i,company.bays[i].assignedTechs);
+			} else if(company.tools[tool_i].passedILQnum < 1 && company.tools[tool_i].perc > 40 || company.tools[tool_i].passedILQnum < 2 && company.tools[tool_i].perc > 80) {
+				//ILQ
+				if(company.techs[i].role==2) {
+					total_prog += doTechWork(2,tool_i,company.bays[i].assignedTechs);
+					if(company.tools[tool_i].passedILQnum < 1 && company.tools[tool_i].perc > 50) {
+						company.tools[tool_i].passedILQnum++;
+					}else if(company.tools[tool_i].passedILQnum < 2 && company.tools[tool_i].perc > 90) {
+						company.tools[tool_i].passedILQnum++;
+					}
+				}
+			} else {
+				//assembly
+				total_prog += doTechWork(-1,tool_i,company.bays[i].assignedTechs);
+			}
+
+			
+		}
+
+	}
+
+
+}
+
+function OLDdoWorkEachBay() {
 	let prog = 0;
 
 	for(let i = 0; i < company.techs.length; i++) {
@@ -970,21 +1190,11 @@ function doWorkOnTool() {
 			prog = prog * (company.techs[i].morale / 10);
 			company.tools[t_i].increasePerc(prog);
 			let ss = ""+prog;
-			//console.log(company.techs[i].name + " made " + ss.substring(0,4) + "%");
 			
 		}
 		company.techs[i].gainExp((prog * 3));
 		company.techs[i].lastProg = prog;
-/*
-		if(chance(5))
-			company.tools[i].increasePerc(-1 * Math.floor(Math.random() * 3))
 
-		if(company.tools[i].shortages > 0 && chance(10))
-			company.tools[i].shortages = company.tools[i].shortages - 1
-
-		if(chance(1))
-			company.tools[i].shortages = company.tools[i].shortages + 1
-		*/
 		prog = 0;
 	}
 
@@ -993,12 +1203,19 @@ function doWorkOnTool() {
 
 
 
+
+
+let debug_console;
+
 function redraw() {
 	
+	debug_console.innerHTML = company.printBays();
+
 	drawGUI();
 	drawTechPanel();
 
 	drawNewGUI();
+
 }
 
 function promoteQT(i) {
@@ -1012,7 +1229,13 @@ function promoteTest(i) {
 	redraw();
 }
 
-
+function drawPoints(num){
+	let s = "";
+	for(let i = 0; i < num; i++) {
+		s=s+"⧫"
+	}
+	return s;
+}
 
 function drawTechPanel(){
 	let s = "";
@@ -1025,28 +1248,20 @@ function drawTechPanel(){
 		"<p class='techID'>Name: " + company.techs[i].name+
 		" [" + company.techs[i].morale+" / 10]\n"+
 		pos_t+"\n"+
-		"<span style='font-size:60%'>" + drawBar(company.techs[i].experiencePerc, 100, 12, "⯀", "#5df", "#000") + "</span>"+
+		"<span style='font-size:60%'>" + drawBar(company.techs[i].experiencePerc, 100, 12, "█", "#5df", "#000") + "</span>"+
 		" --- Level: " + company.techs[i].level+" <span style='font-size:60%'>("+Math.floor(company.techs[i].experiencePerc) +")</span>\n"+
-		"Assembly Prof.: " + company.techs[i].assembProf +" <span style='font-size:60%'>("+company.techs[i].assembProfGrowth +")</span>\n"+
+		"Assembly Prof.: " + company.techs[i].assembProf +" "+drawPoints(company.techs[i].assembProf) +" <span style='font-size:60%'>("+company.techs[i].assembProfGrowth +")</span>\n"+
 		"Test Prof.: " + company.techs[i].testProf +" <span style='font-size:60%'>("+company.techs[i].testProfGrowth +")</span>\n"+
 		"QT Prof.: " + company.techs[i].qtProf + " <span style='font-size:60%'>("+company.techs[i].qtProfGrowth +")</span>\n"+
-		"Wage: " + company.techs[i].wage +"$/hr\n\n"+
-		
-
-		"<button onclick='fireTech(" + i + ")'>Fire</button>"+
-		"<button onclick='giveTechRaise(" + i + ")'>Give raise</button>\n";
-		if(! company.techs[i].isQT)
-			s=s+"<button onclick='promoteQT("+ i +")'>Promote to QT</button>";
-		if(! company.techs[i].isTest)
-			s=s+"<button onclick='promoteTest("+ i +")'>Promote to Test</button>";
-		s=s+
+		"Admin Prof.: " + company.techs[i].adminProf + " <span style='font-size:60%'>("+company.techs[i].adminProfGrowth +")</span>\n"+
+		"Wage: " + company.techs[i].wage +"$/hr\n"+
 		"\nAssign to Bay: " + (company.techs[i].assignedTo+1) + "\n";
-		for(let ii = 0; ii < company.tools.length;ii++) {
+		for(let ii = 0; ii < company.bays.length;ii++) {
 			let ex = " class='assignButton' "
 			if(company.techs[i].assignedTo==ii) {
 				ex = " class='assignButtonSEL' "
 			}
-			s=s+"<button" +ex+" onclick='assignTech(" + i + ", " + ii+ ")'>" + (ii+1) + "</button>";
+			s=s+"<button" +ex+" onclick='btn_assignTech(" + i + ", " + ii+ ")'>" + (ii+1) + "</button>";
 		}
 		s=s+"</p>";
 
@@ -1055,49 +1270,43 @@ function drawTechPanel(){
 	document.getElementById("techs").innerHTML = s;
 }
 
-function assignTech(tech_i, tool_i) {
-	if(company.tools[tool_i].techsOnTool.length <3) {	
-		unassignTech(tech_i, company.techs[tech_i].assignedTo);
-		company.techs[tech_i].assignedTo = tool_i;
-		
-		if(tool_i > -1)
-			company.tools[tool_i].techsOnTool.push(tech_i);
-		redraw();
-	}else
-		addAct("!Can't assign another Tech on this tool!");
+
+function btn_assignTech(tech_i, bay_i) {
+	assignTech(tech_i, bay_i);
+	redraw();
 }
 
-function unassignTech(tech_i, tool_i) {
-	if(tool_i > -1) {
-		for(let i = 0; i < company.tools[tool_i].techsOnTool.length; i++) {
-			if(company.tools[tool_i].techsOnTool[i] == tech_i) {
-				pop_i(company.tools[tool_i].techsOnTool,i);
-				company.techs[tech_i].assignedTo = -1;
-			}
-		}
-	}
-}
-function unassignAllTechsFromTool(tool_i) {
 
-	for(let i = 0; i < company.tools[tool_i].techsOnTool.length; i++) {
+function assignTech(tech_i, bay_i) {
+	if(company.techs[tech_i].assignedTo > -1)
+		unassignTech(tech_i);
+	let isSuccess = company.bays[bay_i].assignTechToBay(tech_i);
+	if(isSuccess)
+		company.techs[tech_i].assignedTo = bay_i;
+}
+
+function unassignTech(tech_i) {
+	let arr = company.bays[company.techs[tech_i].assignedTo].assignedTechs;
+
+	for (let index = 0; index < arr.length; index++) {
+		if(arr[index]==tech_i)
+			pop_i(arr,index);
 		
-		company.techs[company.tools[tool_i].techsOnTool[i] ].assignedTo = -1;
 	}
 }
 
 
-function fireTech(index) {
-	//company.techs.copyWithin(index,index+1,company.techs.length);
-	//company.techs.pop();
-
+function btn_fireTech(index) {
 	pop_i(company.techs, index);
 	for(let i = 0; i < company.techs.length; i++) {
 		company.techs[i].morale--;
 	}
 	redraw();
-
 }
-function giveTechRaise(index) {
+
+
+
+function btn_giveTechRaise(index) {
 	company.techs[index].wage++;
 	company.techs[index].morale++;
 	
@@ -1137,7 +1346,13 @@ function doPayroll(){
 
 
 
+function mousetest(event) {
+	let w = document.get
+	let p = document.getElementById("bob");
+	p.style.right = window.innerWidth-event.clientX-(p.offsetWidth/2) + "px";
+	p.style.top = (event.clientY+30) + "px";
 
+}
 
 
 </script>
@@ -1145,17 +1360,19 @@ function doPayroll(){
 </head>
 
 
-<body  onload="init()">
+<body id="body" onmousemove="mousetest(event)" onload="init()">
+	<canvas id="bob" class="techcanvas" style="position: absolute;">Test</canvas>
 	<h1>Supe Simulator</h1>
 	<p class="recentActions1" onclick="toggleSpeed()">debug SuperSpeed</p>
+	<p id="debug_console">load</p>
 	<table>
 		<tr>
-			<td style="width: 85%;">
+			<td colspan="2" style="width: 85%;">
 				<div style="width: 1000px;overflow-x: scroll;">
 				<table id="newGUI"></table>
 				</div>
 			</td>
-			<td rowspan="2" style="width: 300px;"">
+			<td rowspan="3" style="width: 300px;">
 				<p class="gametable" style="font-size: 1.1em;line-height: 1.3;white-space: pre-line;" id="gui"></p>
 				<p class="gametable"  id="gui2"></p>
 				<div class="recentActions1" style="overflow-y: scroll;height: 250px;white-space: pre-line;" id="recentActions"></div>
@@ -1164,8 +1381,24 @@ function doPayroll(){
 
 		<tr>
 			<td style="width: 85%;">
-				<div style="background-color: azure;overflow-x: scroll;" id="techs">Test</div>
+				<div style="background-color: azure;overflow-x: scroll;" id="unassignedTechs">
+					Loading unassigned Techs...
+				</div>
+			</td>
+			<td style="width: 30%;">
+				<div id="controlButtons">Tech control buttons</div>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" style="width: 85%;">
+				<div style="background-color: azure;overflow-x: scroll;" id="techs">Loading Tech ID cards...</div>
 			</td>
 		</tr>
 	</table>
 </body>
+
+<!-- 
+init()
+progressTime()
+
+ -->
