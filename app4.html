@@ -418,8 +418,8 @@ function init () {
 	gt = document.getElementById("newGUI");
 	debug_console = document.getElementById("debug_console");
 
-	company.tools.push(new Tool());
-	company.tools.push(new Tool());
+	company.tool_backlog.push(new Tool());
+	company.tool_backlog.push(new Tool());
 	company.bays.push(new Bay());
 	company.bays.push(new Bay());
 	hireTech(0);
@@ -429,8 +429,8 @@ function init () {
 	assignTech(0, 0);
 	assignTech(1, 0);
 	assignTech(2, 0);
-	company.bays[0].assignedTool = 0;
-	company.bays[1].assignedTool = 1;
+	company.bays[0].assignToolToBay(0);
+	company.bays[1].assignToolToBay(0);
 	
 	let f="<button onclick='newTest()'>newtest</button><button onclick='buyNewBay()'>Buy new bay for 5,000</button>\n<button onclick='payForRandShortage()'>Buy random Shortage for 1,000</button>\n<button onclick='hireTech(5000)'>Hire new random tech for 5,000</button>"
 
@@ -448,9 +448,8 @@ const company = {
 	shift:1,
 	time:0,
 	bays:[],
-	tools:[],
+	tool_backlog:[],
 	techs:[],
-	backlog:[],
 	recentActions:[],
 	payroll:0,
 	demand:0,
@@ -471,7 +470,7 @@ const company = {
 }
 
 function Bay() {
-	this.assignedTool = -1; //number
+	this.assignedTool = null; //Tool object
 	this.assignedTechs = []; //number array
 
 	this.assignTechToBay = function(tech_i) {
@@ -486,9 +485,19 @@ function Bay() {
 			return false;
 		}
 	}
+	this.assignToolToBay = function(tool_i){
+		this.assignedTool = company.tool_backlog[tool_i];
+		pop_i(company.tool_backlog,tool_i);
+	}
+	this.completeTool = function() {
+
+	}
 	this.print = function() {
 		let s = "";
-		s=s+"Tool: " + this.assignedTool + "; Techs: ";
+		let t = "null";
+		if(this.assignedTool) t = this.assignedTool.perc;
+
+		s=s+"Tool: " + t + "; Techs: ";
 		for (let i = 0; i < this.assignedTechs.length; i++) {
 			s=s+this.assignedTechs[i]+" ";
 		}
@@ -782,10 +791,9 @@ let g = "\n"+
 "Money: " + formatMoney(company.money)+"\n"+
 "Shift: " + company.shift+"\n"+
 "Time: " + company.time+"\n"+
-"Tools: " + company.tools.length + "\n"+
 "Techs: " + company.techs.length + "\n"+
 "Bays: " + company.bays.length + "\n" +
-"Backlog: " + company.backlog.length + "\n";
+"Backlog: " + company.tool_backlog.length + "\n";
 
 
 
@@ -1083,13 +1091,6 @@ function progressTime() {
 	progressHour();
 	doWorkEachBay();
 
-	for(let i = 0; i < company.tools.length; i++) {
-
-		if(company.tools[i].isComplete) {
-			completeTool(i);
-		}
-	}
-
 	redraw();
 }
 
@@ -1100,12 +1101,15 @@ let cheatArray = [
 	"assembProf"
 ];
 
-function doTechWork(req_role,tool_i,techs_arr) {
+function doTechWork(req_role, bay_i, techs_arr) {
 	let prog = 0;
 
 	let total_prog = 0;
 
 	for(let i = 0; i < techs_arr.length; i++) {
+		
+		company.techs[techs_arr[i]].lastProg = 0;
+
 		if(req_role == -1 || company.techs[techs_arr[i]].role == req_role) {
 			let varname = cheatArray[req_role];
 			if(req_role==-1)
@@ -1113,7 +1117,12 @@ function doTechWork(req_role,tool_i,techs_arr) {
 			prog = (company.techs[techs_arr[i]][varname] / 8)
 			
 			prog = prog * (company.techs[i].morale / 10);
-			company.tools[tool_i].increasePerc(prog);
+			company.bays[bay_i].assignedTool.increasePerc(prog);
+
+
+			if(company.bays[bay_i].assignedTool.isComplete) {
+				company.bays[bay_i].assignedTool.completeTool();
+			}
 
 			company.techs[techs_arr[i]].gainExp((prog * 3));
 			company.techs[techs_arr[i]].lastProg = prog;
@@ -1125,30 +1134,31 @@ function doTechWork(req_role,tool_i,techs_arr) {
 	return total_prog;
 }
 
+
+
+
+
+
 function doWorkEachBay() {
 	let total_prog = 0;
 
-	for(let i = 0; i < company.bays.length; i++) {
-
-		let tool_i = company.bays[i].assignedTool;
-
-		if(tool_i > -1 && tool_i < company.tools.length) {
-			if(company.tools[tool_i].inTest) {
+	for(let bay_i = 0; bay_i < company.bays.length; bay_i++) {
+		let tool = company.bays[bay_i].assignedTool;
+		if(tool) {
+			if(tool.inTest) {
 				//TEST
-				total_prog += doTechWork(1,tool_i,company.bays[i].assignedTechs);
-			} else if(company.tools[tool_i].passedILQnum < 1 && company.tools[tool_i].perc > 40 || company.tools[tool_i].passedILQnum < 2 && company.tools[tool_i].perc > 80) {
+				total_prog += doTechWork(1,bay_i,company.bays[bay_i].assignedTechs);
+			} else if(tool.passedILQnum < 1 && tool.perc > 40 || tool.passedILQnum < 2 && tool.perc > 80) {
 				//ILQ
-				if(company.techs[i].role==2) {
-					total_prog += doTechWork(2,tool_i,company.bays[i].assignedTechs);
-					if(company.tools[tool_i].passedILQnum < 1 && company.tools[tool_i].perc > 50) {
-						company.tools[tool_i].passedILQnum++;
-					}else if(company.tools[tool_i].passedILQnum < 2 && company.tools[tool_i].perc > 90) {
-						company.tools[tool_i].passedILQnum++;
+					total_prog += doTechWork(2,bay_i,company.bays[bay_i].assignedTechs);
+					if(tool.passedILQnum < 1 && tool.perc > 50) {
+						tool.passedILQnum++;
+					} else if(tool.passedILQnum < 2 && tool.perc > 90) {
+						tool.passedILQnum++;
 					}
-				}
 			} else {
 				//assembly
-				total_prog += doTechWork(-1,tool_i,company.bays[i].assignedTechs);
+				total_prog += doTechWork(-1,bay_i,company.bays[bay_i].assignedTechs);
 			}
 
 			
