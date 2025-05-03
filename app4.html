@@ -43,6 +43,10 @@
 		margin: 0px;
 	}
 
+	.menu_bar {
+		font-family: 'Arial Narrow', Arial, sans-serif;
+		letter-spacing: -2px;
+	}
 	.assignButton {
 		background-color: #cccee0af; 
 		border: 1px;
@@ -60,6 +64,31 @@
 		text-decoration: none;
 		display: inline-block;
 		border-radius: 8px;
+	}
+
+	.displayTableKey {
+		text-align: right;
+		width: auto;
+		margin: 0px;
+		border-style: solid;
+		border-width: 0px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+		white-space: pre-line;
+	}
+	.displayTableValue {
+		text-align: left;
+		width: auto;
+		margin: 0px;
+		border-style: solid;
+		border-width: 0px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+		white-space: pre-line;
 	}
 	.gametable {
 		
@@ -118,7 +147,6 @@
 		font-size: 14px;
 		margin: 1px;
 		white-space: pre-line;
-		float:left;
 		
 	}
 	.techcanvas {
@@ -130,6 +158,18 @@
 		border-radius: 8px;
 		width: 40px;
 		height: 40px;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.sched {
+		background-color: azure;
+		border: 1px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
 		align-items: center;
 		font-size: 14px;
 		border-style:solid;
@@ -189,6 +229,11 @@ let debugSetting = 0;
 let debug_FAST_MODE = false;
 let debugFlag1 = false;
 let userSel = 0;
+const maxTechsInBay = 3;
+const STARTING_MONEY = 25000;
+const COST_OF_NEW_BAY = 4000;
+const COST_OF_RAND_TECH = 4000;
+const TOOL_COMPLETION_MONEY = 20000;
 
 let gt;
 let cvs;
@@ -432,11 +477,12 @@ function init () {
 	company.bays[0].assignToolToBay(0);
 	company.bays[1].assignToolToBay(0);
 	
-	let f="<button onclick='newTest()'>newtest</button><button onclick='buyNewBay()'>Buy new bay for 5,000</button>\n<button onclick='payForRandShortage()'>Buy random Shortage for 1,000</button>\n<button onclick='hireTech(5000)'>Hire new random tech for 5,000</button>"
+	let f="<button onclick='newTest()'>newtest</button><button onclick='buyNewBay()'>Buy new bay for "+formatMoney(COST_OF_NEW_BAY)+"</button>\n<button onclick='btn_hireTech("+COST_OF_RAND_TECH+")'>Hire new random tech for "+formatMoney(COST_OF_RAND_TECH)+"</button>"
 
 	document.getElementById("gui2").innerHTML = f;
 
 	drawControlButtons(0);
+	drawNewGUI();
 
 	main_loop = setInterval(progressTime, 1000); //1000 is 1 sec
 }
@@ -444,7 +490,7 @@ function init () {
 
 
 const company = {
-	money:20000,
+	money:STARTING_MONEY,
 	shift:1,
 	time:0,
 	bays:[],
@@ -454,10 +500,10 @@ const company = {
 	payroll:0,
 	demand:0,
 
-	adjustMoney: function(m){
-		this.money = this.money - m
+	addToMoney: function(m){
+		this.money = this.money + m
 
-		if(this.money <= 0) {gameOver() }
+		if(this.money < 0) {gameOver() }
 	},
 	printBays: function() {
 		let s = "bays:"+this.bays.length+"<br>";
@@ -474,7 +520,6 @@ function Bay() {
 	this.assignedTechs = []; //number array
 
 	this.assignTechToBay = function(tech_i) {
-		const maxTechsInBay = 3;
 
 		if(this.assignedTechs.length < maxTechsInBay) {
 			this.assignedTechs.push(tech_i);
@@ -490,7 +535,8 @@ function Bay() {
 		pop_i(company.tool_backlog,tool_i);
 	}
 	this.completeTool = function() {
-
+		completeTool(this.assignedTool.ben, this.assignedTool.startingShift)
+		this.assignedTool = null;
 	}
 	this.print = function() {
 		let s = "";
@@ -550,8 +596,11 @@ function Tech() {
 			this.qtProf=Math.min(8, this.qtProf+1);
 			s = s+ " +1 point to QT Prof."
 		}
-		addAct(this.name + " leveled up!" + s);
+		addAct("🔼 " + this.name + " leveled up!" + s);
 		if(this.level % 4 == 0) this.morale--;
+	}
+	this.setMorale = function(num) {
+		this.morale = Math.min(12, Math.max(num + this.morale, 0));
 	}
 
 
@@ -583,6 +632,87 @@ const ToolArray = [
 ];
 
 
+function generateRandBen () {
+		let rd = Math.floor(Math.random() * 10);
+		let b = "" + rd +""+ Math.floor(Math.random() * 10) +
+		""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +
+		""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +
+		""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10);
+
+		return b;
+	}
+
+function defaultNewToolProduct () {
+	let dueDate = 40;
+	let productID = "■AD";
+	return new ToolProduct(generateRandBen, 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID);
+}
+
+function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID) {
+	this.ben = ben;
+	this.perc = perc;
+	this.shortages = shortages;
+	this.findings = findings;
+	this.inTest = inTest;
+	this.isComplete = falisCompletese;
+	this.startingShift = startingShift;
+	this.dueShift = dueShift;
+	this.productID = productID;
+	this.print = function() {
+		let c = "A";
+		if (this.inTest) c = "T";
+		let testColor = "#d71";
+		let col = "#1c1";
+		if (this.inTest) col = testColor;
+		
+		let s = "BEN: "+
+		this.ben+"\nPercent: " + c + Math.floor(this.perc)+"\n"+
+
+		drawSpansAndDrawBar(this.perc, 100, 150, "|", col, "#000") +
+
+		"\nShortages: "+this.shortages+
+		"\nPassed ILQ: "+this.passedILQnum+
+		"\n\nStarting Shift: " +this.startingShift+"";
+		
+		return s;
+	}
+	this.increasePerc = function(add) {
+		
+		this.perc = Math.min(this.perc + add,100);
+		if (this.perc >= 100) {
+			if(this.inTest) {
+				if(this.shortages > 0) this.shortages--;
+				else this.isComplete = true;
+			}
+			else {
+				this.inTest = true;
+				this.perc -= 100
+			}
+		} else if (this.perc < 0) {
+			this.perc = 0;
+		}
+
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function Tool() {
 	this.ben =""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) 
@@ -600,8 +730,11 @@ function Tool() {
 		if (this.inTest) col = testColor;
 		
 		let s = "BEN: "+
-		this.ben+"\nPercent: " + c + Math.floor(this.perc)+"\n"+
-		drawBar(this.perc, 100, 8, "█", col, "#000") + 
+		this.ben+"\nPercent: " + c + Math.floor(this.perc) +
+
+
+		"\n" + drawSpansAndDrawBar(this.perc, 100, 150, "|", col, "#000") +
+
 		"\nShortages: "+this.shortages+
 		"\nPassed ILQ: "+this.passedILQnum+
 		"\n\nStarting Shift: " +this.startingShift+"";
@@ -638,6 +771,17 @@ function formatMoney(num) {
 	r = r + ",<span style='font-size:90%'>" + s.slice(-3) + "</span>";
 return r;
 }
+
+
+
+
+function drawSpansAndDrawBar(min, max, length, char, color1, color2) {
+	return "<span class='menu_bar'>" +
+	drawBar(min, max, length, char, color1, color2) + 
+	"</span>";
+}
+
+
 
 function drawBar(min, max, length, char, color1, color2) {
 	let p = Math.min(Math.floor((min/max)*length), length);
@@ -692,7 +836,10 @@ function chance(perc) {
 	return perc > Math.floor(Math.random() * 100);
 }
 
-
+function btn_hireTech(cost) {
+	hireTech(cost);
+	redraw();
+}
 
 
 
@@ -734,7 +881,7 @@ function hireTech(cost) {
 			company.techs[n].name="Other Sean";
 		}
 	}
-	company.adjustMoney(cost);
+	company.addToMoney(-1*cost);
 }
 
 function payForRandShortage() {
@@ -751,8 +898,9 @@ function payForRandShortage() {
 }
 
 function buyNewBay() {
-	company.money = company.money - 5000;
+	company.addToMoney(-1*COST_OF_NEW_BAY);
 	company.bays.push(new Bay());
+	drawNewGUI();
 	redraw();
 }
 
@@ -765,11 +913,8 @@ clearInterval(main_loop);
 
 
 function newTest() {
-	company.tools.push(new Tool());
-	
-	company.bays[1].assignedTool = company.tools.length - 1;
-
-	gameOver();
+	addAct("I'm here");
+	redraw();
 }
 
 
@@ -802,26 +947,93 @@ document.getElementById("gui").innerHTML = g;
 drawRecentActions ()
 }
 
+
+
+
+
 function drawRecentActions () {
 let s = "\nRecent Actions:<hr><span style='color:#aaa'>";
 
 	
-	for(let i = company.recentActions.length-1; i > 0; i--) {
+	for(let i = company.recentActions.length-1; i > -1; i--) {
 		s=s +"<div class='recentActions2'>"+ company.recentActions[i] +"</div>";
 	}
 	
 document.getElementById("recentActions").innerHTML = s + "</span>";
 }
 
-function drawGame() {
-	let g = "";
 
-for(let i = 0; i < company.tools.length; i++) {
-	g=g+"Bay "+(i+1)+"\n"+company.tools[i].print() + "\n\n";
+
+
+
+
+
+function updateCalendar() {
+	cvs = document.getElementById("schedule");
+	ctxI = cvs.getContext("2d");
+	setDPI(cvs,96*4);
+	ctxI.clearRect(0, 0, cvs.width, cvs.height);
+
+	let x = 0;
+	let y = 17;
+	let intvl = 4;
+	let payrollNext = intvl * (((14 - (company.shift%14)) * 12) - company.time);
+
+	let toolNext = intvl * (((6 - (company.shift % 6)) * 12) - company.time);
+	let toolNext2 = intvl * (((5 - (company.shift % 5)) * 12) - company.time);
+
+	ctxI.font = "18px Lucida Console";
+	ctxI.fillStyle = "#ccf";
+	
+	ctxI.strokeStyle = "#99e";
+	for (let i = 0; i < 15; i++) {
+		//ctxI.fillText("|", i*intvl,y);
+		
+		ctxI.rect(i*intvl*12-(company.time*intvl), 0, intvl*12, 22);
+		ctxI.stroke();
+	}
+	ctxI.fillStyle = "#000";
+	ctxI.fillText("💸", payrollNext-3,y)
+	ctxI.fillText("⬤", toolNext,y)
+	ctxI.fillText("◆", toolNext2,y)
+
 }
 
-	document.getElementById("game").innerHTML = g;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function updateGUI() {
+	let pb;
+		
+		for(let i = 0; i < company.bays.length; i++) {
+			
+				cvs = document.getElementById("c"+i);
+				ctxI = cvs.getContext("2d");
+				setDPI(cvs,96*4);
+
+				
+				drawINDVCanvasGUI(i);
+				pb =  document.getElementById("bay"+i);
+			if(company.bays[i].assignedTool != null) {
+				pb.innerHTML = company.bays[i].assignedTool.print();
+			} else
+				pb.innerHTML = "Bay "+(i+1)+"<br>BEN: ________";
+		}
 }
+
+
+
 
 function drawNewGUI() {
 	if(company.bays.length > 0) {
@@ -855,42 +1067,46 @@ function drawNewGUI() {
 
 
 		gt.innerHTML = sss;
-		let pb;
 		
-		for(let i = 0; i < company.bays.length; i++) {
-			if(company.bays[i].assignedTool > -1) {
-				cvs = document.getElementById("c"+i);
-				ctxI = cvs.getContext("2d");
-				setDPI(cvs,96*4);
-				
-				drawINDVCanvasGUI(i);
-				pb =  document.getElementById("bay"+i);
-				pb.innerHTML =  company.tools[company.bays[i].assignedTool].print();
-			}
-		}
 	}
 }
+
+
+
+
 
 function drawINDVCanvasGUI(i) {
 	ctxI.clearRect(0, 0, cvs.width, cvs.height);
 	ctxI.fillStyle = "#000";
 	let tool_i = company.bays[i].assignedTool;
-	if(tool_i > -1) {
-		drawToolShape(10, 10, company.tools[tool_i].perc, company.tools[tool_i].inTest,ctxI);
-
-		let t_id = "";
-		for(let aa = 0; aa < company.bays[i].assignedTechs.length; aa++) {
-			t_id = t_id + "t";
-			cvs = document.getElementById(t_id+i);
-			ctxI = cvs.getContext("2d");
-			setDPI(cvs,96*4);
-
-			let ii = company.bays[i].assignedTechs[aa];
-			drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
-		}
+	if(tool_i != null) {
+		drawToolShape(10, 10, tool_i.perc, tool_i.inTest,ctxI);
 	}
 
+	let t_id = "";
+	for(let aa = 0; aa < maxTechsInBay ; aa++) {
+		t_id = t_id + "t";
+		cvs = document.getElementById(t_id+i);
+		ctxI = cvs.getContext("2d");
+		setDPI(cvs,96*4);
+
+		ctxI.clearRect(0, 0, cvs.width, cvs.height);
+
+		if(aa < company.bays[i].assignedTechs.length) {
+			let ii = company.bays[i].assignedTechs[aa];
+			drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
+			cvs.addEventListener('click', function() {
+				btn_changeSelTech(ii);
+			});
+		}
+	}
+	
+
 }
+
+
+
+
 
 function drawToolShape(x, y, perc, isInTest, ctx) {
 	let x2 =  x+(perc);
@@ -934,6 +1150,9 @@ x=x+15
 		ctx.fillStyle = "white";
 		ctx.fillText(s, x+20,y+90)
 }
+
+
+
 
 function drawTechShape(x, y, morale, role, ctx, lastPerc, name) {
 	let color2 = "white";
@@ -1048,15 +1267,34 @@ function drawTechShape(x, y, morale, role, ctx, lastPerc, name) {
 	
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function toggleSpeed() {
 	debugFlag1=true;
 }
+
+
 
 function progressHour() {
 	if(debugFlag1) {
 		if(!debug_FAST_MODE) {
 			clearInterval(main_loop);
-			main_loop = setInterval(progressTime, 100); 
+			main_loop = setInterval(progressTime, 80); 
 			debug_FAST_MODE = !debug_FAST_MODE;
 		} else {
 			clearInterval(main_loop);
@@ -1076,11 +1314,9 @@ function progressHour() {
 
 
 
-function completeTool(i) {
-	let completionMoney = 15000;
-	addAct(company.tools[i].ben + " was completed in " + (company.shift-company.tools[i].startingShift)+" shift(s). Added "+completionMoney+" to Money.")
-	pop_i(company.tools,i);
-	company.money = company.money + completionMoney;
+function completeTool(ben, startingShift) {
+	addAct(ben + " was completed in " + (company.shift - startingShift)+" shift(s). Added "+TOOL_COMPLETION_MONEY+" to Money.")
+	company.addToMoney(TOOL_COMPLETION_MONEY);
 }
 
 
@@ -1096,24 +1332,38 @@ function progressTime() {
 
 
 let cheatArray = [
+	"assembProf",
 	"testProf",
-	"qtProf",
-	"assembProf"
+	"qtProf"
 ];
 
 function doTechWork(req_role, bay_i, techs_arr) {
 	let prog = 0;
 
 	let total_prog = 0;
-
+	let traineeCanWork = true;
+	
 	for(let i = 0; i < techs_arr.length; i++) {
-		
-		company.techs[techs_arr[i]].lastProg = 0;
 
-		if(req_role == -1 || company.techs[techs_arr[i]].role == req_role) {
+		company.techs[techs_arr[i]].lastProg = 0;
+		traineeCanWork = true;
+
+		//checking for trainee
+		if(company.techs[techs_arr[i]].role == 3) {
+			traineeCanWork = false;
+			for(let ii = 0; ii < techs_arr.length; ii++) {
+				//finding other techs that aren't a trainee
+				if(company.techs[techs_arr[ii]].role != 3) {
+					traineeCanWork = true;
+				}
+			}
+		}
+		
+
+		if(traineeCanWork && req_role == -1 || company.techs[techs_arr[i]].role == req_role) {
 			let varname = cheatArray[req_role];
 			if(req_role==-1)
-				varname = cheatArray[2];
+				varname = cheatArray[0];
 			prog = (company.techs[techs_arr[i]][varname] / 8)
 			
 			prog = prog * (company.techs[i].morale / 10);
@@ -1121,7 +1371,7 @@ function doTechWork(req_role, bay_i, techs_arr) {
 
 
 			if(company.bays[bay_i].assignedTool.isComplete) {
-				company.bays[bay_i].assignedTool.completeTool();
+				company.bays[bay_i].completeTool();
 			}
 
 			company.techs[techs_arr[i]].gainExp((prog * 3));
@@ -1130,7 +1380,7 @@ function doTechWork(req_role, bay_i, techs_arr) {
 		total_prog += prog;
 		prog = 0;
 	}
-
+	
 	return total_prog;
 }
 
@@ -1162,50 +1412,11 @@ function doWorkEachBay() {
 			}
 
 			
-		}
-
-	}
-
-
-}
-
-function OLDdoWorkEachBay() {
-	let prog = 0;
-
-	for(let i = 0; i < company.techs.length; i++) {
-
-		let t_i = company.techs[i].assignedTo;
-
-		if(t_i > -1 && t_i < company.tools.length) {
-			if(company.tools[t_i].inTest) {
-				//TEST
-				if(company.techs[i].role==1) {
-					prog = (company.techs[i].testProf/8)
-				}
-			} else if(company.tools[t_i].passedILQnum < 1 && company.tools[t_i].perc > 40 || company.tools[t_i].passedILQnum < 2 && company.tools[t_i].perc > 80) {
-				//ILQ
-				if(company.techs[i].role==2) {
-					prog = (company.techs[i].qtProf/8)
-					if(company.tools[t_i].passedILQnum < 1 && company.tools[t_i].perc > 50) {
-						company.tools[t_i].passedILQnum++;
-					}else if(company.tools[t_i].passedILQnum < 2 && company.tools[t_i].perc > 90) {
-						company.tools[t_i].passedILQnum++;
-					}
-				}
-			} else {
-				//assembly
-				prog = (company.techs[i].assembProf/8)
+		} else
+			if(chance(10)) {
+				company.bays[bay_i].assignedTool = new Tool();
 			}
 
-			prog = prog * (company.techs[i].morale / 10);
-			company.tools[t_i].increasePerc(prog);
-			let ss = ""+prog;
-			
-		}
-		company.techs[i].gainExp((prog * 3));
-		company.techs[i].lastProg = prog;
-
-		prog = 0;
 	}
 
 
@@ -1223,8 +1434,8 @@ function redraw() {
 
 	drawGUI();
 	drawTechPanel();
-
-	drawNewGUI();
+	updateGUI()
+	updateCalendar();
 
 }
 
@@ -1248,6 +1459,44 @@ function drawPoints(num){
 }
 
 function drawTechPanel(){
+	let s = "<tr>";
+
+	for(let i = 0; i < company.techs.length; i++) {
+		
+		let sps = " <span style='font-size:60%'>(";
+		let spe = ")</span>";
+		
+		let array = [
+		"Name", company.techs[i].name,
+		"Role", roleArray[company.techs[i].role],
+		"Level", drawBar(company.techs[i].experiencePerc, 100, 12, "█", "#5df", "#000") + sps + Math.floor(company.techs[i].experiencePerc) + spe,
+		"Assembly Prof", company.techs[i].assembProf + sps + company.techs[i].assembProfGrowth + spe,
+		"Test Prof", company.techs[i].testProf + sps + company.techs[i].testProfGrowth + spe,
+		"QT Prof", company.techs[i].qtProf + sps + company.techs[i].qtProfGrowth + spe,
+		"Admin Prof", company.techs[i].adminProf + sps + company.techs[i].adminProfGrowth + spe,
+		"Wage", company.techs[i].wage
+		];
+		
+		s = s + "<td>" + displayTable(array, i) + "</td>";
+	}
+
+	document.getElementById("techs").innerHTML = s + "</tr>";
+}
+
+function displayTable(array, i){
+
+	let ret = "<table class='techID'>";
+	for (let i = 0; i+1 < array.length; i += 2) {
+		ret = ret + "<tr><td class='displayTableKey'>" + array[i] + ":  " + "</td><td class='displayTableValue'>" + array[i+1] + "</tr>";
+		
+	}
+	return ret + "</table>";
+
+}
+
+
+
+function OLDdrawTechPanel(){
 	let s = "";
 
 	for(let i = 0; i < company.techs.length; i++) {
@@ -1307,22 +1556,49 @@ function unassignTech(tech_i) {
 
 
 function btn_fireTech(index) {
+	unassignTech(index);
 	pop_i(company.techs, index);
 	for(let i = 0; i < company.techs.length; i++) {
-		company.techs[i].morale--;
+		company.techs[i].setMorale(-1);
 	}
+	correctTechIndexNumbers(index);
 	redraw();
+}
+
+
+function correctTechIndexNumbers(index) {
+	for (let i = 0; i < company.bays.length; i++) {
+		for (let ii = 0; ii < company.bays[i].assignedTechs.length; ii++) {
+			if(company.bays[i].assignedTechs[ii] > index) {
+				company.bays[i].assignedTechs[ii]--;
+			}	
+		}
+		
+	}
 }
 
 
 
 function btn_giveTechRaise(index) {
 	company.techs[index].wage++;
-	company.techs[index].morale++;
+	company.techs[index].setMorale(5);
 	
 	redraw();
 
 }
+
+
+function btn_changeSelTech(num) {
+	userSel = num;
+	drawControlButtons(num);
+}
+
+
+
+
+
+
+
 
 
 
@@ -1349,8 +1625,8 @@ function payShift() {
 
 function doPayroll(){
 	let m = company.payroll;
-	company.money -= company.payroll;
-	addAct("Payroll, minus " + m);
+	company.addToMoney(-1*company.payroll);
+	addAct("💸 Payroll, minus " + m);
 	company.payroll = 0;
 }
 
@@ -1371,11 +1647,15 @@ function mousetest(event) {
 
 
 <body id="body" onmousemove="mousetest(event)" onload="init()">
-	<canvas id="bob" class="techcanvas" style="position: absolute;">Test</canvas>
 	<h1>Supe Simulator</h1>
 	<p class="recentActions1" onclick="toggleSpeed()">debug SuperSpeed</p>
 	<p id="debug_console">load</p>
 	<table>
+		<tr>
+			<td colspan="3">
+				<canvas id="schedule" width='1150' height='22' class="sched"></canvas>
+			</td>
+		</tr>
 		<tr>
 			<td colspan="2" style="width: 85%;">
 				<div style="width: 1000px;overflow-x: scroll;">
@@ -1393,6 +1673,16 @@ function mousetest(event) {
 			<td style="width: 85%;">
 				<div style="background-color: azure;overflow-x: scroll;" id="unassignedTechs">
 					Loading unassigned Techs...
+					■▲▼◆⬟⯂⬣⬤▧
+					🤩😎
+					😀😃🙂☺️
+					😐😑😒😕
+					😔🙁😟☹️😧😣😓😫😩😠
+					😷🤒🤕🤢😵🤧
+					👤💸📅🗓️📆📊🗃️🛠️🔨🔧🏅
+					0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣🔟
+					🔼⏫
+					🟢🟡🔴
 				</div>
 			</td>
 			<td style="width: 30%;">
@@ -1401,10 +1691,15 @@ function mousetest(event) {
 		</tr>
 		<tr>
 			<td colspan="2" style="width: 85%;">
-				<div style="background-color: azure;overflow-x: scroll;" id="techs">Loading Tech ID cards...</div>
+				<div style="width: 1000px;overflow-x: scroll;">
+					<table id="techs"></table>
+				</div>
 			</td>
 		</tr>
 	</table>
+
+	<canvas id="bob" class="techcanvas" style="position: absolute;">Test</canvas>
+	
 </body>
 
 <!-- 
