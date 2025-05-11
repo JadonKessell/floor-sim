@@ -142,13 +142,36 @@
 		text-align: center;
 		text-decoration: none;
 		border-radius: 8px;
-		width: 300px;
+		width: 270px;
 		align-items: center;
 		font-size: 14px;
 		margin: 1px;
 		white-space: pre-line;
 		
 	}
+	.techIcon {
+		
+		border: 1px solid black;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		padding: 4px 2px;
+		font-size: 20px;
+	}
+	.techIconTrainee {
+		background-color: #5f8ae5;
+	}
+	.techIconAssembler {
+		background-color: #ffffff;
+	}
+	.techIconTest {
+		background-color: #ffffff;
+		border: 4px double black;
+	}
+	.techIconQT {
+		background-color: #6cde73;
+	}
+
 	.techcanvas {
 		background-color: azure;
 		border: 1px;
@@ -207,7 +230,7 @@
 		align-items: center;
 	}
 	.assignedTechCanvas:hover {
-		background-color: yellow;
+		background-color: lightblue;
 	}
 	.assignedTechCanvas {
 		border: 1px solid rgb(27, 59, 59);
@@ -463,8 +486,12 @@ function init () {
 	gt = document.getElementById("newGUI");
 	debug_console = document.getElementById("debug_console");
 
-	company.tool_backlog.push(new Tool());
-	company.tool_backlog.push(new Tool());
+	
+	company.products.push(generateNewProduct("easy"));
+
+
+	company.tool_backlog.push(defaultNewToolProduct(0));
+	company.tool_backlog.push(defaultNewToolProduct(0));
 	company.bays.push(new Bay());
 	company.bays.push(new Bay());
 	hireTech(0);
@@ -495,10 +522,12 @@ const company = {
 	time:0,
 	bays:[],
 	tool_backlog:[],
+	products:[],
 	techs:[],
 	recentActions:[],
 	payroll:0,
 	demand:0,
+	quarter:1,
 
 	addToMoney: function(m){
 		this.money = this.money + m
@@ -568,6 +597,7 @@ function Tech() {
 	this.lastProg			 = 0;
 	this.assignedTo			 = -1;
 	this.role				 = 0;
+	this.vari				 = getRndIntegerInclusive(0,1);
 	if(chance(10)) {
 		this.role	= 1;
 		this.testProf += 2;
@@ -607,29 +637,236 @@ function Tech() {
 }
 
 
-/*
-different Tool ideas
-*/
-const ToolArray = [
-	[
-		"Lite-Saber", // easy tool
-		1400, // work unit points
-		50, //num of OPs
-		70, //instruction eff
-	],
-	[
-		"Scimitar", // bulk tool
-		5000, // work unit points
-		90, //num of OPs
-		70, //instruction eff
-	],
-	[
-		"Claymore", // difficult tool
-		9600, // work unit points
-		30, //num of OPs
-		70, //instruction eff
-	],
-];
+ function randVari(num) {
+	let r = 0;
+	if(num == null)
+		num = 21;
+	if(chance(50))
+		r = -1 ;
+	return r * getRndIntegerInclusive(0,num);
+}
+
+function generateNewProduct(diff) {
+	
+	let opArr = [];
+
+	let amountAssem = 0;
+	let amountTest = 0;
+	let amountQT = 0;
+	let index = 0;
+//wp, eff, com, wkstn, type, redMor, progSec, reqRole
+	let wpRange = [30, 50, 90];
+	let effRange = [70, 50, 30];
+	let comRange = [5, 13, 20];
+	let progSec = 1;
+	let BOMpartsRange = [7, 14, 20];
+	let BOMpartsAmount = 0;
+
+
+	if(diff == "easy") {
+		amountAssem = 6 + randVari(2);
+		amountTest = 3 + randVari(2);
+		amountQT = 3;
+		BOMpartsAmount = BOMpartsRange[index] + getRndIntegerInclusive(-2, 3);
+	}
+	else if(diff == "med") {
+		amountAssem = 10 + randVari(4);
+		amountTest = 8 + randVari(4);
+		amountQT = 4 + randVari(1);
+		index = 1;
+		BOMpartsAmount = BOMpartsRange[index] + getRndIntegerInclusive(-3, 4);
+	}
+	else if(diff == "hard") {
+		amountAssem = 16 + randVari(6);
+		amountTest = 10 + randVari(2);
+		amountQT = 5 + getRndIntegerInclusive(-1, 3);
+		index = 2;
+		BOMpartsAmount = BOMpartsRange[index] + getRndIntegerInclusive(-5, 8);
+	}
+
+
+	//Manage dist. of parts
+	let partsDist = [];
+	let partsNumLeft = BOMpartsAmount;
+
+	for (let pDi = 0; pDi < amountAssem || partsNumLeft <= 0; pDi++) {
+		let equalDistPlusRand = (BOMpartsAmount / amountAssem) + getRndIntegerInclusive(-1, 2); 
+		partsDist[pDi] = equalDistPlusRand;
+		partsNumLeft -= equalDistPlusRand;
+	}
+	partsDist[0] += partsNumLeft;
+
+	//Create Assembly and ILQ operations:
+	let ilqTime = Math.floor(amountAssem / amountQT);
+	let wrk = 0;
+
+	for (var i = 0; i < amountAssem; i++) {
+		wrk++;
+		if(wrk > 3) wrk = 1;
+		opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], wrk, "assembly", 0, progSec, -1, partsDist[i]));
+
+		if(i > 0 && i % ilqTime == 0) {
+			progSec += 1;
+			opArr.push(generateNewOP(diff, 30, effRange[index], comRange[index], 1, "quality", 0, progSec, 2));
+		}
+	}
+	wrk = 1;
+	progSec += 1;
+
+	//Create Test and FSA/PSA/Preship operations:
+	for (var i = 0; i < amountTest; i++) {
+		wrk++;
+		if(wrk > 3) wrk = 1;
+		opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], wrk, "test", 0, progSec, 1));
+
+		if(i+1 >= amountTest) {
+			progSec += 1;
+			opArr.push(generateNewOP(diff, 100, Math.min(99, Math.max(78, effRange[index] + randVari(20))), comRange[index], 1, "quality", 0, progSec, 2));
+		}
+	}
+
+	//Calc total work unit points
+	let totalWUP = 0;
+	for (var i = 0; i < opArr.length; i++) {
+		totalWUP += opArr[i].wp;
+	}
+
+	//generate 2 letter code
+	let codename = "";
+
+	codename = codename + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+	codename = codename + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+	codename = codename + "-" + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+	codename = codename + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+
+	//pick shape
+	let shapes = "";
+	let shape = shapes.charAt( getRndIntegerInclusive(0, shapes.length-1) );
+
+	return new Product(codename, shape, diff, opArr, progSec, totalWUP);
+
+}
+
+
+
+
+
+
+
+
+
+function generateNewOP (diff, wp, eff, com, wkstn, type, redMor, progSec, reqRole) {
+
+	wp += randVari();
+	let chanceNumOfParts = 0;
+	let partsArr = [];
+
+	if(diff == "easy") {
+		eff += randVari();
+		com += randVari(5);
+		redMor = getRndIntegerInclusive(0,2);
+		chanceNumOfParts = getRndIntegerInclusive(0,2);
+	}
+	else if(diff == "med") {
+		eff += randVari();
+		com += randVari(12);
+		redMor = getRndIntegerInclusive(1,4);
+		chanceNumOfParts = getRndIntegerInclusive(0,3);
+	}
+	else if(diff == "hard") {
+		eff += randVari();
+		com += randVari(15);
+		redMor = getRndIntegerInclusive(5,9);
+		chanceNumOfParts = getRndIntegerInclusive(0,4);
+	}
+
+	//generate parts
+	if(type=="assembly") {
+		for (let i = 0; i < chanceNumOfParts; i++) {
+			if(chance(34)) {
+				partsArr.push("");// 01-323-09
+			}
+		}
+	}
+
+	let o = new OP(wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr)
+	o.calcPoteSavings();
+	return o;
+}
+
+
+
+
+function Product (name, shape, diff, OP, numOfSections, totalWP) {
+	this.name = name;
+	this.difficultyLevel = diff;
+	this.shape = shape;
+	this.opArr = OP;
+	this.numOfSections = numOfSections;
+	this.totalWP = totalWP;
+
+	this.print = function () {
+		let opA = [];
+		for (let i = 0; i < this.opArr.length; i++) {
+			opA.push("");
+			opA.push(this.opArr[i].print());
+		}
+
+		let arr = [
+			"Name", this.name + this.shape,
+			"Difficulty", this.difficultyLevel,
+			"Sections Count", this.numOfSections,
+			"Total WP", this.totalWP,
+
+			"OP array", this.opArr.length +"\n" + displayTable(opA)
+		];
+
+
+		return displayTable(arr);
+	}
+}
+
+
+function OP (wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr) {
+	this.wp = wp;
+	this.eff = eff;
+	this.commLogPote = Math.max(0,com);
+	this.workstation = wkstn;
+	this.typeOfOP = type;
+	this.reduceMorale = redMor;
+	this.progressSection = progSec;
+	this.requiredRole = reqRole;
+	this.potentialSavings = 0;
+	this.partsArr = partsArr;
+
+	this.calcPoteSavings = function () {
+		this.potentialSavings = this.wp * (100 - this.eff)/100;
+	}
+
+
+	this.print = function() {
+		let arr = [
+			"WP", this.wp,
+			"EFF", this.eff,
+			"CL Pote", this.commLogPote,
+			"WKSTN", this.workstation,
+			"Type", this.typeOfOP,
+			"Reduce Morale", this.reduceMorale,
+			"Section", this.progressSection,
+			"Requied Role", this.requiredRole,
+			"Pote Savings", this.potentialSavings
+		];
+		return displayTable(arr);
+	}
+}
+
+
+
+
+
+
+
+
 
 
 function generateRandBen () {
@@ -642,22 +879,29 @@ function generateRandBen () {
 		return b;
 	}
 
-function defaultNewToolProduct () {
+function defaultNewToolProduct (productID) {
 	let dueDate = 40;
-	let productID = "■AD";
-	return new ToolProduct(generateRandBen, 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID);
+
+	return new ToolProduct(generateRandBen(), 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID, "emtpy");
 }
 
-function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID) {
-	this.ben = ben;
+function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID, currentStatus) {
+	
 	this.perc = perc;
+	this.totalWP = company.products[productID].totalWP;
+	this.opProgressArr = 0;
+
+	this.ben = ben;
 	this.shortages = shortages;
 	this.findings = findings;
 	this.inTest = inTest;
-	this.isComplete = falisCompletese;
+	this.isComplete = isComplete;
 	this.startingShift = startingShift;
 	this.dueShift = dueShift;
 	this.productID = productID;
+	this.productIDName = company.products[productID].name;
+	this.currentStatus = currentStatus;
+
 	this.print = function() {
 		let c = "A";
 		if (this.inTest) c = "T";
@@ -665,16 +909,25 @@ function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startin
 		let col = "#1c1";
 		if (this.inTest) col = testColor;
 		
-		let s = "BEN: "+
-		this.ben+"\nPercent: " + c + Math.floor(this.perc)+"\n"+
+		let s = [
+			"BEN", this.ben,
+			"Product ID", this.productIDName,
+			"Total WP", this.totalWP,
+			"Percent", c + Math.floor(this.perc)
+		]
 
-		drawSpansAndDrawBar(this.perc, 100, 150, "|", col, "#000") +
 
-		"\nShortages: "+this.shortages+
-		"\nPassed ILQ: "+this.passedILQnum+
-		"\n\nStarting Shift: " +this.startingShift+"";
+		let ss = drawSpansAndDrawBar(this.perc, 100, 150, "|", col, "#000") + "\n";
+
+		let sss = [
+			"Shortages", this.shortages,
+			"", this.passedILQnum,
+			"Starting Shift", this.startingShift
+		];
 		
-		return s;
+
+
+		return displayTable(s, 2) + ss + displayTable(sss, 2);
 	}
 	this.increasePerc = function(add) {
 		
@@ -836,6 +1089,10 @@ function chance(perc) {
 	return perc > Math.floor(Math.random() * 100);
 }
 
+function getRndIntegerInclusive(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) ) + min;
+}
+
 function btn_hireTech(cost) {
 	hireTech(cost);
 	redraw();
@@ -912,8 +1169,12 @@ clearInterval(main_loop);
 }
 
 
+let tttt = null;
 function newTest() {
-	addAct("I'm here");
+
+	//tttt = generateNewProduct("easy");
+	tttt = generateNewProduct("hard");
+	document.getElementById("controlButtons").innerHTML = tttt.print();
 	redraw();
 }
 
@@ -934,17 +1195,19 @@ function drawControlButtons(sel) {
 function drawGUI() {
 let g = "\n"+
 "Money: " + formatMoney(company.money)+"\n"+
+"Quarter: " + company.quarter+"\n"+
 "Shift: " + company.shift+"\n"+
 "Time: " + company.time+"\n"+
 "Techs: " + company.techs.length + "\n"+
 "Bays: " + company.bays.length + "\n" +
+"Products: " + company.products.length + "\n" +
 "Backlog: " + company.tool_backlog.length + "\n";
 
 
 
 document.getElementById("gui").innerHTML = g;
 
-drawRecentActions ()
+drawRecentActions ();
 }
 
 
@@ -993,7 +1256,7 @@ function updateCalendar() {
 		ctxI.stroke();
 	}
 	ctxI.fillStyle = "#000";
-	ctxI.fillText("💸", payrollNext-3,y)
+	ctxI.fillText("💸", payrollNext,y)
 	ctxI.fillText("⬤", toolNext,y)
 	ctxI.fillText("◆", toolNext2,y)
 
@@ -1017,11 +1280,6 @@ function updateGUI() {
 	let pb;
 		
 		for(let i = 0; i < company.bays.length; i++) {
-			
-				cvs = document.getElementById("c"+i);
-				ctxI = cvs.getContext("2d");
-				setDPI(cvs,96*4);
-
 				
 				drawINDVCanvasGUI(i);
 				pb =  document.getElementById("bay"+i);
@@ -1044,14 +1302,14 @@ function drawNewGUI() {
 			sss=sss+"<td class='gametable'><p class='gameP' id='bay"+ i +"'>Bay "+(i+1)+"<br>BEN: ________</p></td>";
 			
 		}
-		sss=sss+"</tr><tr>";
+		/*sss=sss+"</tr><tr>";
 
 		for(let i = 0; i < company.bays.length; i++) {
 
-			sss=sss+"<td class='gamecanvas'>"+
-			"<canvas class='assignedToolCanvas' id='c" + i + "' width='130' height='120'></canvas></td>";
+			//sss=sss+"<td class='gamecanvas'>"+
+			"<canvas class='assignedToolCanvas' id='c" + i + "' width='130' height='120'></canvas>"</td>";
 			
-		}
+		}*/
 		sss=sss+"</tr><tr>";
 
 		for(let i = 0; i < company.bays.length; i++) {
@@ -1076,12 +1334,17 @@ function drawNewGUI() {
 
 
 function drawINDVCanvasGUI(i) {
+	/*
+	
+	cvs = document.getElementById("c"+i);
+	ctxI = cvs.getContext("2d");
+	setDPI(cvs,96*4);
 	ctxI.clearRect(0, 0, cvs.width, cvs.height);
 	ctxI.fillStyle = "#000";
 	let tool_i = company.bays[i].assignedTool;
 	if(tool_i != null) {
 		drawToolShape(10, 10, tool_i.perc, tool_i.inTest,ctxI);
-	}
+	}*/
 
 	let t_id = "";
 	for(let aa = 0; aa < maxTechsInBay ; aa++) {
@@ -1095,8 +1358,13 @@ function drawINDVCanvasGUI(i) {
 		if(aa < company.bays[i].assignedTechs.length) {
 			let ii = company.bays[i].assignedTechs[aa];
 			drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
+
+			if(userSel==aa) cvs.style.backgroundColor = "yellow";
+			else cvs.style.backgroundColor = "";
+
 			cvs.addEventListener('click', function() {
 				btn_changeSelTech(ii);
+
 			});
 		}
 	}
@@ -1367,6 +1635,8 @@ function doTechWork(req_role, bay_i, techs_arr) {
 			prog = (company.techs[techs_arr[i]][varname] / 8)
 			
 			prog = prog * (company.techs[i].morale / 10);
+
+
 			company.bays[bay_i].assignedTool.increasePerc(prog);
 
 
@@ -1434,10 +1704,13 @@ function redraw() {
 
 	drawGUI();
 	drawTechPanel();
-	updateGUI()
+	updateGUI();
 	updateCalendar();
 
 }
+
+
+
 
 function promoteQT(i) {
 	company.techs[i].role = 2;
@@ -1467,7 +1740,7 @@ function drawTechPanel(){
 		let spe = ")</span>";
 		
 		let array = [
-		"Name", company.techs[i].name,
+		"Name", company.techs[i].name + " " + drawMoraleAsString (company.techs[i].morale, company.techs[i].role, company.techs[i].vari),
 		"Role", roleArray[company.techs[i].role],
 		"Level", drawBar(company.techs[i].experiencePerc, 100, 12, "█", "#5df", "#000") + sps + Math.floor(company.techs[i].experiencePerc) + spe,
 		"Assembly Prof", company.techs[i].assembProf + sps + company.techs[i].assembProfGrowth + spe,
@@ -1477,15 +1750,68 @@ function drawTechPanel(){
 		"Wage", company.techs[i].wage
 		];
 		
-		s = s + "<td>" + displayTable(array, i) + "</td>";
+		s = s + "<td>" + displayTable(array) + "</td>";
 	}
 
 	document.getElementById("techs").innerHTML = s + "</tr>";
 }
 
-function displayTable(array, i){
 
-	let ret = "<table class='techID'>";
+function drawMoraleAsString (m, role, vari) {
+	let str = "🤩😎";
+	let c = "techIcon";
+
+	if(role==0)
+		c = c + " techIconAssembler";
+	else if(role==1)
+		c = c + " techIconTest";
+	else if(role==2)
+		c = c + " techIconQT";
+	else if(role==3)
+		c = c + " techIconTrainee";
+
+
+
+	if(vari==null || vari > 2 || vari < 0)
+		vari = 0;
+	vari*=2;
+	
+	//😷🤒🤕🤢😵🤧
+
+	if(m > 10) {
+		str = "🤩😎";
+	} else if(m >= 9) {
+		str = "😀☺️";//😃
+	} else if(m >= 7) {
+		str = "🙂🙂";
+	} else if(m >= 6) {
+		str = "😐😑";
+	} else if(m >= 5) {
+		str = "😒😕";
+	} else if(m >= 4) {
+		str = "🙁😟";//☹️
+	} else if(m >= 3) {
+		str = "😔😧";//😓
+	} else if(m >= 2) {
+		str = "🙁😟";
+	} else if(m >= 1) {
+		str = "😣😫";//😩
+	} else {
+		str = "😠😠";
+	}
+	
+	return "<span class='" + c + "'>" + str.substring(vari, vari+2) + "</span>";
+}
+
+
+
+
+function displayTable(array, opt){
+
+	let c = "class='techID'";
+	if(opt == 2)
+		c= "";
+	let ret = "<table "+c+">";
 	for (let i = 0; i+1 < array.length; i += 2) {
 		ret = ret + "<tr><td class='displayTableKey'>" + array[i] + ":  " + "</td><td class='displayTableValue'>" + array[i+1] + "</tr>";
 		
@@ -1591,6 +1917,7 @@ function btn_giveTechRaise(index) {
 function btn_changeSelTech(num) {
 	userSel = num;
 	drawControlButtons(num);
+	
 }
 
 
@@ -1612,6 +1939,10 @@ function newShift() {
 
 	company.time=0;
 	company.shift++;
+
+	if(company.shift % 180 == 0) {
+		company.quarter++;
+	}
 	payShift();
 	if(company.shift%14==0) doPayroll();
 }
@@ -1633,10 +1964,20 @@ function doPayroll(){
 
 
 function mousetest(event) {
-	let w = document.get
-	let p = document.getElementById("bob");
-	p.style.right = window.innerWidth-event.clientX-(p.offsetWidth/2) + "px";
-	p.style.top = (event.clientY+30) + "px";
+	
+	let cav = document.getElementById("bob");
+
+	//move element under mouse
+	cav.style.right = window.innerWidth-event.clientX-(cav.offsetWidth/2) + "px";
+	cav.style.top = (event.clientY+30) + "px";
+
+	//draw tech
+	ctx = cav.getContext("2d");
+	setDPI(cav,96*4);
+	
+	ctx.clearRect(0, 0, cav.width, cav.height);
+	let ii = userSel;
+	drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctx, company.techs[ii].lastProg,company.techs[ii].name);
 
 }
 
@@ -1665,7 +2006,7 @@ function mousetest(event) {
 			<td rowspan="3" style="width: 300px;">
 				<p class="gametable" style="font-size: 1.1em;line-height: 1.3;white-space: pre-line;" id="gui"></p>
 				<p class="gametable"  id="gui2"></p>
-				<div class="recentActions1" style="overflow-y: scroll;height: 250px;white-space: pre-line;" id="recentActions"></div>
+				<div class="recentActions1" style="overflow-y: scroll;height: 350px;white-space: pre-line;" id="recentActions"></div>
 			</td>
 		</tr>
 
@@ -1673,12 +2014,12 @@ function mousetest(event) {
 			<td style="width: 85%;">
 				<div style="background-color: azure;overflow-x: scroll;" id="unassignedTechs">
 					Loading unassigned Techs...
-					■▲▼◆⬟⯂⬣⬤▧
+					■▲▼◆⬣⬤▧
 					🤩😎
 					😀😃🙂☺️
 					😐😑😒😕
 					😔🙁😟☹️😧😣😓😫😩😠
-					😷🤒🤕🤢😵🤧
+					😷🤒⬟🤕🤢😵🤧
 					👤💸📅🗓️📆📊🗃️🛠️🔨🔧🏅
 					0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣🔟
 					🔼⏫
@@ -1698,7 +2039,7 @@ function mousetest(event) {
 		</tr>
 	</table>
 
-	<canvas id="bob" class="techcanvas" style="position: absolute;">Test</canvas>
+	<canvas id="bob" class="techcanvas" style="position: absolute;" width="50" height="80">Test</canvas>
 	
 </body>
 
