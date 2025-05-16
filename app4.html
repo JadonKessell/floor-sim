@@ -689,7 +689,7 @@ function generateNewProduct(diff) {
 	let partsDist = [];
 	let partsNumLeft = BOMpartsAmount;
 
-	for (let pDi = 0; pDi < amountAssem || partsNumLeft <= 0; pDi++) {
+	for (let pDi = 0; pDi < amountAssem; pDi++) {
 		let equalDistPlusRand = (BOMpartsAmount / amountAssem) + getRndIntegerInclusive(-1, 2); 
 		partsDist[pDi] = equalDistPlusRand;
 		partsNumLeft -= equalDistPlusRand;
@@ -703,7 +703,7 @@ function generateNewProduct(diff) {
 	for (var i = 0; i < amountAssem; i++) {
 		wrk++;
 		if(wrk > 3) wrk = 1;
-		opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], wrk, "assembly", 0, progSec, -1, partsDist[i]));
+		opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], wrk, "assembly", 0, progSec, -1, partsDist[i], i));
 
 		if(i > 0 && i % ilqTime == 0) {
 			progSec += 1;
@@ -743,49 +743,95 @@ function generateNewProduct(diff) {
 	let shapes = "";
 	let shape = shapes.charAt( getRndIntegerInclusive(0, shapes.length-1) );
 
-	return new Product(codename, shape, diff, opArr, progSec, totalWUP);
+	//BOM
+	let BOM = [];
+	for (let i = 0; i < opArr.length; i++) {
+		for (let ii = 0; ii < opArr[i].partsArr.length; ii++) {
+			BOM.push(opArr[i].partsArr[ii].pn);
+		}
+		
+	}
 
+	return new Product(codename, shape, diff, opArr, progSec, totalWUP, BOM);
+
+}
+
+
+function Part (pn, frailty, availability, weight, complexity) {
+	this.pn = pn;
+	this.frailty = frailty;
+	this.availability = availability;
+	this.weight = weight;
+	this.complexity = complexity;
+
+	this.print = function () {
+		let arr = [
+			"PN", this.pn,
+			"Frailty", this.frailty,
+			"Availability", this.availability,
+		];
+
+		return displayTable(arr);
+	}
+}
+
+function generateNewPart (opNum) {
+	let pn = opNum + "-" + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + "-";
+//example 01-223-12
+	if(opNum < 10)
+		pn = "0" + pn;
+
+	let frailty = getRndIntegerInclusive(0, 20);
+		if(chance(10))
+			frailty += getRndIntegerInclusive(0, 40);
+		if(chance(5))
+			frailty += getRndIntegerInclusive(0, 40);
+
+	let availability = getRndIntegerInclusive(65, 90);
+		if(chance(10))
+			availability -= getRndIntegerInclusive(0, 20);
+		if(chance(5))
+			availability -= getRndIntegerInclusive(0, 40);
+
+	pn = pn + Math.floor(frailty/10) + Math.floor(availability/10);
+
+
+	let weight = getRndIntegerInclusive(0, 70);
+
+	let complexity = getRndIntegerInclusive(65, 90);
+
+
+	return new Part(pn, frailty, availability, weight, complexity);
 }
 
 
 
 
-
-
-
-
-
-function generateNewOP (diff, wp, eff, com, wkstn, type, redMor, progSec, reqRole) {
+function generateNewOP (diff, wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsNum, opNum) {
 
 	wp += randVari();
-	let chanceNumOfParts = 0;
-	let partsArr = [];
+	partsArr = [];
 
 	if(diff == "easy") {
 		eff += randVari();
 		com += randVari(5);
 		redMor = getRndIntegerInclusive(0,2);
-		chanceNumOfParts = getRndIntegerInclusive(0,2);
 	}
 	else if(diff == "med") {
 		eff += randVari();
 		com += randVari(12);
 		redMor = getRndIntegerInclusive(1,4);
-		chanceNumOfParts = getRndIntegerInclusive(0,3);
 	}
 	else if(diff == "hard") {
 		eff += randVari();
 		com += randVari(15);
 		redMor = getRndIntegerInclusive(5,9);
-		chanceNumOfParts = getRndIntegerInclusive(0,4);
 	}
 
 	//generate parts
 	if(type=="assembly") {
-		for (let i = 0; i < chanceNumOfParts; i++) {
-			if(chance(34)) {
-				partsArr.push("");// 01-323-09
-			}
+		for (let i = 0; i < partsNum; i++) {
+			partsArr.push( generateNewPart(opNum) );// 01-323-09
 		}
 	}
 
@@ -797,13 +843,14 @@ function generateNewOP (diff, wp, eff, com, wkstn, type, redMor, progSec, reqRol
 
 
 
-function Product (name, shape, diff, OP, numOfSections, totalWP) {
+function Product (name, shape, diff, OP, numOfSections, totalWP, bom) {
 	this.name = name;
 	this.difficultyLevel = diff;
 	this.shape = shape;
 	this.opArr = OP;
 	this.numOfSections = numOfSections;
 	this.totalWP = totalWP;
+	this.bom = bom;
 
 	this.print = function () {
 		let opA = [];
@@ -817,6 +864,7 @@ function Product (name, shape, diff, OP, numOfSections, totalWP) {
 			"Difficulty", this.difficultyLevel,
 			"Sections Count", this.numOfSections,
 			"Total WP", this.totalWP,
+			"BOM", this.bom.length,
 
 			"OP array", this.opArr.length +"\n" + displayTable(opA)
 		];
@@ -845,6 +893,12 @@ function OP (wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr) {
 
 
 	this.print = function() {
+		let ptA = [];
+		for (let i = 0; i < this.partsArr.length; i++) {
+			ptA.push("");
+			ptA.push(this.partsArr[i].print());
+		}
+
 		let arr = [
 			"WP", this.wp,
 			"EFF", this.eff,
@@ -854,7 +908,10 @@ function OP (wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr) {
 			"Reduce Morale", this.reduceMorale,
 			"Section", this.progressSection,
 			"Requied Role", this.requiredRole,
-			"Pote Savings", this.potentialSavings
+			"Pote Savings", this.potentialSavings,
+
+			"Parts", this.partsArr.length +"\n" + displayTable(ptA)
+
 		];
 		return displayTable(arr);
 	}
