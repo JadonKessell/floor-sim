@@ -662,10 +662,11 @@ function generateNewProduct(diff) {
 	let BOMpartsRange = [7, 14, 20];
 	let BOMpartsAmount = 0;
 
+	let rangePSA_FSA = [50, 90, 120];
 
 	if(diff == "easy") {
 		amountAssem = 6 + randVari(2);
-		amountTest = 3 + randVari(2);
+		amountTest = 6 + randVari(2);
 		amountQT = 3;
 		BOMpartsAmount = BOMpartsRange[index] + getRndIntegerInclusive(-2, 3);
 	}
@@ -707,29 +708,37 @@ function generateNewProduct(diff) {
 
 		if(i > 0 && i % ilqTime == 0) {
 			progSec += 1;
-			opArr.push(generateNewOP(diff, 30, effRange[index], comRange[index], 1, "quality", 0, progSec, 2));
+			opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], 6, "quality", 0, progSec, 2));
 		}
 	}
 	wrk = 1;
 	progSec += 1;
 
 	//Create Test and FSA/PSA/Preship operations:
+	wrk = 3;
 	for (var i = 0; i < amountTest; i++) {
 		wrk++;
-		if(wrk > 3) wrk = 1;
+		if(wrk > 5) wrk = 4;
 		opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], wrk, "test", 0, progSec, 1));
 
 		if(i+1 >= amountTest) {
 			progSec += 1;
-			opArr.push(generateNewOP(diff, 100, Math.min(99, Math.max(78, effRange[index] + randVari(20))), comRange[index], 1, "quality", 0, progSec, 2));
+			opArr.push(generateNewOP(diff, rangePSA_FSA[index], Math.min(99, Math.max(78, effRange[index] + randVari(20))), comRange[index], 6, "quality", 0, progSec, 2));
 		}
 	}
 
 	//Calc total work unit points
+	//Calc total cost of tool
 	let totalWUP = 0;
+	let totalMaterialCost = 0;
 	for (var i = 0; i < opArr.length; i++) {
 		totalWUP += opArr[i].wp;
+		for (var ii = 0; ii < opArr[i].partsArr.length; ii++) {
+			totalMaterialCost += opArr[i].partsArr[ii].cost;
+		}
 	}
+	let netTotalCost = totalMaterialCost + (totalWUP/8)*200; //Assuming 8 WP an hour
+	netTotalCost *= 1.2; //profit 20%
 
 	//generate 2 letter code
 	let codename = "";
@@ -752,23 +761,25 @@ function generateNewProduct(diff) {
 		
 	}
 
-	return new Product(codename, shape, diff, opArr, progSec, totalWUP, BOM);
+	return new Product(codename, shape, diff, opArr, progSec, 6, totalWUP, BOM, totalMaterialCost, netTotalCost);
 
 }
 
 
-function Part (pn, frailty, availability, weight, complexity) {
+function Part (pn, frailty, availability, cost, weight, complexity) {
 	this.pn = pn;
 	this.frailty = frailty;
 	this.availability = availability;
 	this.weight = weight;
 	this.complexity = complexity;
+	this.cost = cost;
 
 	this.print = function () {
 		let arr = [
 			"PN", this.pn,
 			"Frailty", this.frailty,
 			"Availability", this.availability,
+			"Cost", this.cost
 		];
 
 		return displayTable(arr);
@@ -776,12 +787,12 @@ function Part (pn, frailty, availability, weight, complexity) {
 }
 
 function generateNewPart (opNum) {
-	let pn = opNum + "-" + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + "-";
+	let pn = (opNum+1) + "-" + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + "-";
 //example 01-223-12
 	if(opNum < 10)
 		pn = "0" + pn;
 
-	let frailty = getRndIntegerInclusive(0, 20);
+	let frailty = getRndIntegerInclusive(0, 5);
 		if(chance(10))
 			frailty += getRndIntegerInclusive(0, 40);
 		if(chance(5))
@@ -793,6 +804,15 @@ function generateNewPart (opNum) {
 		if(chance(5))
 			availability -= getRndIntegerInclusive(0, 40);
 
+	let cost = getRndIntegerInclusive(1, 50);
+		if(chance(30))
+			cost += getRndIntegerInclusive(0, 100);
+		if(chance(5))
+			cost += getRndIntegerInclusive(0, 1000);
+
+		cost = Math.max(1, cost);
+		cost *= 10;
+
 	pn = pn + Math.floor(frailty/10) + Math.floor(availability/10);
 
 
@@ -801,7 +821,7 @@ function generateNewPart (opNum) {
 	let complexity = getRndIntegerInclusive(65, 90);
 
 
-	return new Part(pn, frailty, availability, weight, complexity);
+	return new Part(pn, frailty, availability, cost, weight, complexity);
 }
 
 
@@ -843,14 +863,17 @@ function generateNewOP (diff, wp, eff, com, wkstn, type, redMor, progSec, reqRol
 
 
 
-function Product (name, shape, diff, OP, numOfSections, totalWP, bom) {
+function Product (name, shape, diff, OP, numOfSections, numOfWorkstations, totalWP, bom, totalMaterialCost, netTotalCost) {
 	this.name = name;
 	this.difficultyLevel = diff;
 	this.shape = shape;
 	this.opArr = OP;
 	this.numOfSections = numOfSections;
+	this.numOfWorkstations = numOfWorkstations;
 	this.totalWP = totalWP;
 	this.bom = bom;
+	this.totalMaterialCost = totalMaterialCost;
+	this.netTotalCost = netTotalCost;
 
 	this.print = function () {
 		let opA = [];
@@ -865,6 +888,9 @@ function Product (name, shape, diff, OP, numOfSections, totalWP, bom) {
 			"Sections Count", this.numOfSections,
 			"Total WP", this.totalWP,
 			"BOM", this.bom.length,
+			
+			"Total Material Cost", this.totalMaterialCost,
+			"Net total Cost", this.netTotalCost,
 
 			"OP array", this.opArr.length +"\n" + displayTable(opA)
 		];
@@ -938,15 +964,16 @@ function generateRandBen () {
 
 function defaultNewToolProduct (productID) {
 	let dueDate = 40;
-
-	return new ToolProduct(generateRandBen(), 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID, "emtpy");
+	let t = new ToolProduct(generateRandBen(), 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID, "emtpy");
+	t.init();
+	return t;
 }
 
-function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID, currentStatus) {
+function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID, currentStatus, totalMaterialCost, netTotalCost) {
 	
 	this.perc = perc;
 	this.totalWP = company.products[productID].totalWP;
-	this.opProgressArr = 0;
+	this.opProgressArr = [];
 
 	this.ben = ben;
 	this.shortages = shortages;
@@ -958,6 +985,26 @@ function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startin
 	this.productID = productID;
 	this.productIDName = company.products[productID].name;
 	this.currentStatus = currentStatus;
+	this.totalMaterialCost = totalMaterialCost;
+	this.netTotalCost = netTotalCost;
+
+	this.workstationsTotalWP = [];
+
+
+	this.init = function() {
+		Object.assign(this.opProgressArr, company.products[this.productID].opArr);
+		for (let index = 0; index < company.products[this.productID].numOfWorkstations; index++) {
+			this.workstationsTotalWP.push(0);
+		}
+
+		for (let index = 0; index < this.opProgressArr.length; index++) {
+			//adding perc value to each OP
+			this.opProgressArr[index].perc = 0;
+			//calc total for each workstation
+			this.workstationsTotalWP[this.opProgressArr[index].workstation - 1] += this.opProgressArr[index].wp;
+		}
+console.log(this);
+	}
 
 	this.print = function() {
 		let c = "A";
@@ -965,6 +1012,7 @@ function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startin
 		let testColor = "#d71";
 		let col = "#1c1";
 		if (this.inTest) col = testColor;
+		let barRatio = this.totalWP/150
 		
 		let s = [
 			"BEN", this.ben,
@@ -974,11 +1022,15 @@ function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startin
 		]
 
 
-		let ss = drawSpansAndDrawBar(this.perc, 100, 150, "|", col, "#000") + "\n";
+		let ss = drawSpansAndDrawBar(this.perc, this.totalWP, 150, "|", col, "#000") + "\n";
+		for (let index = 0; index < this.workstationsTotalWP.length; index++) {
+			ss = ss + drawSpansAndDrawBar(0, this.workstationsTotalWP[index], this.workstationsTotalWP[index]/barRatio, "|", col, "#000") + "\n";
+		}
+		
 
 		let sss = [
 			"Shortages", this.shortages,
-			"", this.passedILQnum,
+			"Total WP", this.totalWP,
 			"Starting Shift", this.startingShift
 		];
 		
@@ -1230,7 +1282,7 @@ let tttt = null;
 function newTest() {
 
 	//tttt = generateNewProduct("easy");
-	tttt = generateNewProduct("hard");
+	tttt = generateNewProduct("easy");
 	document.getElementById("controlButtons").innerHTML = tttt.print();
 	redraw();
 }
@@ -1836,7 +1888,7 @@ function drawMoraleAsString (m, role, vari) {
 	//😷🤒🤕🤢😵🤧
 
 	if(m > 10) {
-		str = "🤩😎";
+		str = "🤩🤩";//😎
 	} else if(m >= 9) {
 		str = "😀☺️";//😃
 	} else if(m >= 7) {
@@ -2070,8 +2122,8 @@ function mousetest(event) {
 		<tr>
 			<td style="width: 85%;">
 				<div style="background-color: azure;overflow-x: scroll;" id="unassignedTechs">
-					Loading unassigned Techs...
-					■▲▼◆⬣⬤▧
+					 Loading unassigned Techs...
+					<!--■▲▼◆⬣⬤▧
 					🤩😎
 					😀😃🙂☺️
 					😐😑😒😕
@@ -2080,7 +2132,7 @@ function mousetest(event) {
 					👤💸📅🗓️📆📊🗃️🛠️🔨🔧🏅
 					0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣🔟
 					🔼⏫
-					🟢🟡🔴
+					🟢🟡🔴 -->
 				</div>
 			</td>
 			<td style="width: 30%;">
