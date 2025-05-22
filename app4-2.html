@@ -1,0 +1,2228 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Supe Simulator</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+	body {
+		font-family: "Lucida Console", monospace;
+		padding: 0px;
+		border: 0px;
+		padding: 0px;
+		margin: 8px;
+		/* background-color: #808590; */
+		white-space: nowrap
+	}
+
+	table {
+		margin: 0px;
+	}
+	td {
+
+		
+		vertical-align:top;
+		
+		align-items: center;
+	}
+
+	a {
+		background-color: #346fa6;
+		color: white;
+		text-align: center;
+		border-radius: 3px;
+		align-items: center;
+		font-size: 14px;
+		padding: 5px;
+		user-select: none;
+		font-size: 1.2em;
+	}
+	a:hover {
+		background-color: #875c2a;
+	}
+
+	.ovflX {
+		overflow-x: scroll;
+  		display: block;
+border: 1px solid #000;
+	}
+		
+	.container {
+		display: grid;
+border: 1px solid #000;
+		grid-template-columns: auto auto auto;
+
+		grid-template-areas:
+		't t d' 
+		'c c b1'
+		's s b1'
+		'c1h c2h b1'
+		'col1 col2 reA';
+
+	}
+
+	.t {
+		grid-area: t;
+	}
+	.d {
+		grid-area: d;
+	}
+	.c {
+		grid-area: c;
+	}
+	.s {
+		grid-area: s;
+	}
+	.c1h {
+		grid-area: c1h;
+		justify-self: center;
+	}
+	.c2h {
+		grid-area: c2h;
+  		justify-self: center;
+	}
+	.col1 {
+		grid-area: col1;
+	}
+	.col2 {
+		grid-area: col2;
+	}
+	.b1 {
+		grid-area: b1;
+	}
+	.reA {
+		grid-area: reA;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	.td_border {
+		margin: 0px;
+		padding: 0px;
+		border-style: solid;
+		border-width: 1px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+	}
+	.td_with_padding {
+		padding-left: 10px;
+		
+		
+	}
+
+	p {
+		text-align: right;
+		padding: 10px;
+	}
+
+	h1 {
+		text-align: center;
+		padding: 0px;
+		margin: 0px;
+	}
+	.tab_menu_table {
+		
+		background-color: #cccee0af;
+	}
+
+	.menu_bar {
+		font-family: 'Arial Narrow', Arial, sans-serif;
+		letter-spacing: -2px;
+	}
+	.assignButton {
+		background-color: #cccee0af; 
+		border: 1px;
+		color: rgb(8, 8, 8);
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		border-radius: 8px;
+	}
+	.assignButtonSEL {
+		background-color: #5ba5eb;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		border-radius: 8px;
+	}
+
+	.displayTableKey {
+		text-align: right;
+		margin: 0px;
+		border-style: solid;
+		border-width: 0px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+		white-space: pre-line;
+	}
+	.displayTableValue {
+		text-align: left;
+		margin: 0px;
+		border-style: solid;
+		border-width: 0px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+		white-space: pre-line;
+	}
+	.gametable {
+		
+		background-color: #346fa6;
+		border: 1px;
+		color: white;
+		text-align: center;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		
+	}
+	.fullscreen {
+		width: 100%;
+		height: 100%;
+	}
+
+	.mainStats {
+		
+		background-color: #444b59;
+		color: white;
+		padding: 3px;
+		text-align: center;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 0px;
+		width:auto;
+		white-space: pre-line;
+		padding: 0px 2px;
+		
+	}
+	.recentActions1 {
+		
+		background-color: #444b59;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		
+	}
+	.recentActions2 {
+		
+		background-color: #869fa4;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		
+	}
+	.techID {
+		
+		background-color: #79c9c1;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		width: 270px;
+		height: 50%;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		float: left;
+		
+	}
+	.techIcon {
+		
+		border: 1px solid black;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 20px;
+		padding: 4px 4px;
+		font-size: 20px;
+	}
+	.techIconTrainee {
+		background-color: #5f8ae5;
+	}
+	.techIconAssembler {
+		background-color: #ffffff;
+	}
+	.techIconTest {
+		background-color: #ffffff;
+		border: 4px double black;
+		padding: 1px 1px;
+	}
+	.techIconQT {
+		background-color: #6cde73;
+	}
+
+	.techcanvas {
+		background-color: azure;
+		border: 1px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		width: 40px;
+		height: 40px;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.sched {
+		background-color: azure;
+		border: 1px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.gamecanvas {
+		
+		background-color: azure;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.gameP {
+		font-family: "Lucida Console", monospace;
+		text-align: center;
+		padding: 10px;
+	}
+
+	.invisTechTD {
+		
+		background-color: none;
+		border: 0px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		align-items: center;
+	}
+	.assignedTechCanvas:hover {
+		background-color: lightblue;
+	}
+	.assignedTechCanvas {
+		border: 1px solid rgb(27, 59, 59);
+		border-radius: 30px;
+	}
+	.assignedToolCanvas {
+	
+		background-color: azure;
+	}
+</style>
+
+
+<script>
+
+
+let menu_sel_col_1_tab_num = -1;
+let menu_sel_col_2_tab_num = -1;
+
+let main_loop;
+let animTimer = 0;
+let debugSetting = 0;
+let debug_FAST_MODE = false;
+let debugFlag1 = false;
+let userSel = 0;
+const maxTechsInBay = 3;
+const STARTING_MONEY = 25000;
+const COST_OF_NEW_BAY = 4000;
+const COST_OF_RAND_TECH = 4000;
+const TOOL_COMPLETION_MONEY = 20000;
+
+let cvs;
+let ctxI;
+let roleArray = [
+	"Assembler",
+	"Test Tech",
+	"Quality Tech",
+	"Trainee",
+	"PCFS",
+	"Lead",
+	"MFE"
+]
+
+let names = [
+'James',
+'Michael',
+'Robert',
+'John',
+'David',
+'William',
+'Richard',
+'Joseph',
+'Thomas',
+'Christopher',
+'Charles',
+'Daniel',
+'Matthew',
+'Anthony',
+'Mark',
+'Donald',
+'Steven',
+'Andrew',
+'Paul',
+'Joshua',
+'Kenneth',
+'Kevin',
+'Brian',
+'Timothy',
+'Ronald',
+'George',
+'Jason',
+'Edward',
+'Jeffrey',
+'Ryan',
+'Jacob',
+'Nicholas',
+'Gary',
+'Eric',
+'Jonathan',
+'Stephen',
+'Larry',
+'Justin',
+'Scott',
+'Brandon',
+'Benjamin',
+'Samuel',
+'Gregory',
+'Alexander',
+'Patrick',
+'Frank',
+'Raymond',
+'Jack',
+'Dennis',
+'Jerry',
+'Tyler',
+'Aaron',
+'Jose',
+'Adam',
+'Nathan',
+'Henry',
+'Zachary',
+'Douglas',
+'Peter',
+'Kyle',
+'Noah',
+'Ethan',
+'Jeremy',
+'Walter',
+'Keith',
+'Austin',
+'Roger',
+'Terry',
+'Sean',
+'Gerald',
+'Carl',
+'Dylan',
+'Harold',
+'Jordan',
+'Jesse',
+'Bryan',
+'Lawrence',
+'Arthur',
+'Gabriel',
+'Bruce',
+'Logan',
+'Billy',
+'Joe',
+'Alan',
+'Juan',
+'Elijah',
+'Willie',
+'Albert',
+'Wayne',
+'Randy',
+'Mason',
+'Vincent',
+'Liam',
+'Roy',
+'Bobby',
+'Caleb',
+'Bradley',
+'Russell',
+'Lucas',
+'Mary',
+'Patricia',
+'Jennifer',
+'Linda',
+'Elizabeth',
+'Barbara',
+'Susan',
+'Jessica',
+'Karen',
+'Sarah',
+'Lisa',
+'Nancy',
+'Sandra',
+'Betty',
+'Ashley',
+'Emily',
+'Kimberly',
+'Margaret',
+'Donna',
+'Michelle',
+'Carol',
+'Amanda',
+'Melissa',
+'Deborah',
+'Stephanie',
+'Rebecca',
+'Sharon',
+'Laura',
+'Cynthia',
+'Dorothy',
+'Amy',
+'Kathleen',
+'Angela',
+'Shirley',
+'Emma',
+'Brenda',
+'Pamela',
+'Nicole',
+'Anna',
+'Samantha',
+'Katherine',
+'Christine',
+'Debbie',
+'Rachel',
+'Carolyn',
+'Janet',
+'Maria',
+'Olivia',
+'Heather',
+'Helen',
+'Catherine',
+'Diane',
+'Julie',
+'Victoria',
+'Joyce',
+'Lauren',
+'Kelly',
+'Christina',
+'Ruth',
+'Joan',
+'Virginia',
+'Judith',
+'Evelyn',
+'Hannah',
+'Andrea',
+'Megan',
+'Cheryl',
+'Jacqueline',
+'Madison',
+'Teresa',
+'Abigail',
+'Sophia',
+'Martha',
+'Sara',
+'Gloria',
+'Janice',
+'Kathryn',
+'Ann',
+'Isabella',
+'Judy',
+'Charlotte',
+'Julia',
+'Grace',
+'Amber',
+'Alice',
+'Jean',
+'Denise',
+'Frances',
+'Danielle',
+'Marilyn',
+'Natalie',
+'Beverly',
+'Diana',
+'Brittany',
+'Theresa',
+'Kayla',
+'Alexis',
+'Doris',
+'Lori',
+'Tiffany',
+'Brian',
+'Bryon',
+'Ron',
+'Cody',
+"D'ondre"
+]
+
+
+
+
+
+function init () {
+
+	debug_console = document.getElementById("debug_console");
+
+	
+	company.products.push(generateNewProduct("easy"));
+
+
+	company.tool_backlog.push(defaultNewToolProduct(0));
+	company.tool_backlog.push(defaultNewToolProduct(0));
+	company.bays.push(new Bay());
+	company.bays.push(new Bay());
+	hireTech(0);
+	hireTech(0);
+	hireTech(0);
+	company.techs[2].role = 3;
+	assignTech(0, 0);
+	assignTech(1, 0);
+	assignTech(2, 0);
+	company.bays[0].assignToolToBay(0);
+	company.bays[1].assignToolToBay(0);
+	
+	let f="<button onclick='newTest()'>newtest</button><button onclick='buyNewBay()'>Buy new bay for "+formatMoney(COST_OF_NEW_BAY)+"</button>\n<button onclick='btn_hireTech("+COST_OF_RAND_TECH+")'>Hire new random tech for "+formatMoney(COST_OF_RAND_TECH)+"</button>"
+
+	document.getElementById("gui2").innerHTML = f;
+
+	drawControlButtons(0);
+
+	main_loop = setInterval(progressTime, 1000); //1000 is 1 sec
+}
+
+
+
+const company = {
+	money:STARTING_MONEY,
+	shift:1,
+	time:0,
+	bays:[],
+	tool_backlog:[],
+	products:[],
+	techs:[],
+	recentActions:[],
+	payroll:0,
+	demand:0,
+	quarter:1,
+
+	addToMoney: function(m){
+		this.money = this.money + m
+
+		if(this.money < 0) {gameOver() }
+	},
+	printBays: function() {
+		let s = "bays:"+this.bays.length+"<br>";
+
+		for (var i = 0; i < this.bays.length; i++) {
+			s=s+this.bays[i].print()+"<br>";
+		}
+		return s;
+	}
+}
+
+function Bay() {
+	this.assignedTool = null; //Tool object
+	this.assignedTechs = []; //number array
+
+	this.assignTechToBay = function(tech_i) {
+
+		if(this.assignedTechs.length < maxTechsInBay) {
+			this.assignedTechs.push(tech_i);
+			return true;
+		}
+		else {
+			addAct("!Can't assign another Tech on this tool!");
+			return false;
+		}
+	}
+	this.assignToolToBay = function(tool_i){
+		this.assignedTool = company.tool_backlog[tool_i];
+		pop_i(company.tool_backlog,tool_i);
+	}
+	this.completeTool = function() {
+		completeTool(this.assignedTool.ben, this.assignedTool.startingShift)
+		this.assignedTool = null;
+	}
+	this.print = function() {
+		let s = "";
+		let t = "null";
+		if(this.assignedTool) t = this.assignedTool.perc;
+
+		s=s+"Tool: " + t + "; Techs: ";
+		for (let i = 0; i < this.assignedTechs.length; i++) {
+			s=s+this.assignedTechs[i]+" ";
+		}
+		return s;
+	}
+}
+
+
+function Tech() {
+	this.name				 = names[Math.floor(Math.random() * names.length)];
+	this.level				 = 0; //every 100 exp
+	this.experiencePerc		 = 0; //added every sec
+	this.assembProf			 = Math.floor(Math.random() * 3)+1;
+	this.assembProfGrowth	 = Math.floor(Math.random() * 8)+1;
+	this.testProf			 = Math.floor(Math.random() * 3)+1;
+	this.qtProf				 = Math.floor(Math.random() * 3)+1;
+	this.testProfGrowth	 = Math.floor(Math.random() * 8)+1;
+	this.adminProf				 = 1;
+	this.adminProfGrowth	 = Math.floor(Math.random() * 8)+1;
+	this.qtProfGrowth	 = Math.floor(Math.random() * 8)+1;
+	this.morale				 = 10;
+	this.lastProg			 = 0;
+	this.assignedTo			 = -1;
+	this.role				 = 0;
+	this.vari				 = getRndIntegerInclusive(0,1);
+	if(chance(10)) {
+		this.role	= 1;
+		this.testProf += 2;
+	}
+	this.wage	=this.assembProf+this.testProf+this.qtProf+12;
+	if(this.role==1) this.wage = this.wage + 2;
+
+	this.reliability		 = Math.floor(Math.random() * 9);
+	this.gainExp = function(ex) {
+		this.experiencePerc = this.experiencePerc + ex;
+		if(this.experiencePerc >= 100) this.levelUp();
+	}
+	this.levelUp = function() {
+		this.level++;
+		let s = "";
+		this.experiencePerc -= 100;
+		if(chance(this.assembProfGrowth*10)) {
+			this.assembProf=Math.min(8, this.assembProf+1);
+			s = s+ " +1 point to Assembly Prof."
+		}
+		if(chance(this.testProfGrowth*10)) {
+			this.testProf=Math.min(8, this.testProf+1);
+			s = s+ " +1 point to Test Prof."
+		}
+		if(chance(this.qtProfGrowth*10)) {
+			this.qtProf=Math.min(8, this.qtProf+1);
+			s = s+ " +1 point to QT Prof."
+		}
+		addAct("🔼 " + this.name + " leveled up!" + s);
+		if(this.level % 4 == 0) this.morale--;
+	}
+	this.setMorale = function(num) {
+		this.morale = Math.min(12, Math.max(num + this.morale, 0));
+	}
+
+
+}
+
+
+ function randVari(num) {
+	let r = 0;
+	if(num == null)
+		num = 21;
+	if(chance(50))
+		r = -1 ;
+	return r * getRndIntegerInclusive(0,num);
+}
+
+function generateNewProduct(diff) {
+	
+	let opArr = [];
+
+	let amountAssem = 0;
+	let amountTest = 0;
+	let amountQT = 0;
+	let index = 0;
+//wp, eff, com, wkstn, type, redMor, progSec, reqRole
+	let wpRange = [30, 50, 90];
+	let effRange = [70, 50, 30];
+	let comRange = [5, 13, 20];
+	let progSec = 1;
+	let BOMpartsRange = [7, 14, 20];
+	let BOMpartsAmount = 0;
+
+	let rangePSA_FSA = [50, 90, 120];
+
+	if(diff == "easy") {
+		amountAssem = 6 + randVari(2);
+		amountTest = 6 + randVari(2);
+		amountQT = 3;
+		BOMpartsAmount = BOMpartsRange[index] + getRndIntegerInclusive(-2, 3);
+	}
+	else if(diff == "med") {
+		amountAssem = 10 + randVari(4);
+		amountTest = 8 + randVari(4);
+		amountQT = 4 + randVari(1);
+		index = 1;
+		BOMpartsAmount = BOMpartsRange[index] + getRndIntegerInclusive(-3, 4);
+	}
+	else if(diff == "hard") {
+		amountAssem = 16 + randVari(6);
+		amountTest = 10 + randVari(2);
+		amountQT = 5 + getRndIntegerInclusive(-1, 3);
+		index = 2;
+		BOMpartsAmount = BOMpartsRange[index] + getRndIntegerInclusive(-5, 8);
+	}
+
+
+	//Manage dist. of parts
+	let partsDist = [];
+	let partsNumLeft = BOMpartsAmount;
+
+	for (let pDi = 0; pDi < amountAssem; pDi++) {
+		let equalDistPlusRand = (BOMpartsAmount / amountAssem) + getRndIntegerInclusive(-1, 2); 
+		partsDist[pDi] = equalDistPlusRand;
+		partsNumLeft -= equalDistPlusRand;
+	}
+	partsDist[0] += partsNumLeft;
+
+	//Create Assembly and ILQ operations:
+	let ilqTime = Math.floor(amountAssem / amountQT);
+	let wrk = 0;
+
+	for (var i = 0; i < amountAssem; i++) {
+		wrk++;
+		if(wrk > 3) wrk = 1;
+		opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], wrk, "assembly", 0, progSec, -1, partsDist[i], i));
+
+		if(i > 0 && i % ilqTime == 0) {
+			progSec += 1;
+			opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], 6, "quality", 0, progSec, 2));
+		}
+	}
+	wrk = 1;
+	progSec += 1;
+
+	//Create Test and FSA/PSA/Preship operations:
+	wrk = 3;
+	for (var i = 0; i < amountTest; i++) {
+		wrk++;
+		if(wrk > 5) wrk = 4;
+		opArr.push(generateNewOP(diff, wpRange[index], effRange[index], comRange[index], wrk, "test", 0, progSec, 1));
+
+		if(i+1 >= amountTest) {
+			progSec += 1;
+			opArr.push(generateNewOP(diff, rangePSA_FSA[index], Math.min(99, Math.max(78, effRange[index] + randVari(20))), comRange[index], 6, "quality", 0, progSec, 2));
+		}
+	}
+
+	//Calc total work unit points
+	//Calc total cost of tool
+	let totalWUP = 0;
+	let totalMaterialCost = 0;
+	for (var i = 0; i < opArr.length; i++) {
+		totalWUP += opArr[i].wp;
+		for (var ii = 0; ii < opArr[i].partsArr.length; ii++) {
+			totalMaterialCost += opArr[i].partsArr[ii].cost;
+		}
+	}
+	let netTotalCost = totalMaterialCost + (totalWUP/8)*200; //Assuming 8 WP an hour
+	netTotalCost *= 1.2; //profit 20%
+
+	//generate 2 letter code
+	let codename = "";
+
+	codename = codename + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+	codename = codename + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+	codename = codename + "-" + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+	codename = codename + String.fromCharCode( getRndIntegerInclusive(65, 90) );
+
+	//pick shape
+	let shapes = "";
+	let shape = shapes.charAt( getRndIntegerInclusive(0, shapes.length-1) );
+
+	//BOM
+	let BOM = [];
+	for (let i = 0; i < opArr.length; i++) {
+		for (let ii = 0; ii < opArr[i].partsArr.length; ii++) {
+			BOM.push(opArr[i].partsArr[ii].pn);
+		}
+		
+	}
+
+	return new Product(codename, shape, diff, opArr, progSec, 6, totalWUP, BOM, totalMaterialCost, netTotalCost);
+
+}
+
+
+function Part (pn, frailty, availability, cost, weight, complexity) {
+	this.pn = pn;
+	this.frailty = frailty;
+	this.availability = availability;
+	this.weight = weight;
+	this.complexity = complexity;
+	this.cost = cost;
+
+	this.print = function () {
+		let arr = [
+			"PN", this.pn,
+			"Frailty", this.frailty,
+			"Availability", this.availability,
+			"Cost", this.cost
+		];
+
+		return displayTable(arr);
+	}
+}
+
+function generateNewPart (opNum) {
+	let pn = (opNum+1) + "-" + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + getRndIntegerInclusive(0, 9) + "-";
+//example 01-223-12
+	if(opNum < 10)
+		pn = "0" + pn;
+
+	let frailty = getRndIntegerInclusive(0, 5);
+		if(chance(10))
+			frailty += getRndIntegerInclusive(0, 40);
+		if(chance(5))
+			frailty += getRndIntegerInclusive(0, 40);
+
+	let availability = getRndIntegerInclusive(65, 90);
+		if(chance(10))
+			availability -= getRndIntegerInclusive(0, 20);
+		if(chance(5))
+			availability -= getRndIntegerInclusive(0, 40);
+
+	let cost = getRndIntegerInclusive(1, 50);
+		if(chance(30))
+			cost += getRndIntegerInclusive(0, 100);
+		if(chance(5))
+			cost += getRndIntegerInclusive(0, 1000);
+
+		cost = Math.max(1, cost);
+		cost *= 10;
+
+	pn = pn + Math.floor(frailty/10) + Math.floor(availability/10);
+
+
+	let weight = getRndIntegerInclusive(0, 70);
+
+	let complexity = getRndIntegerInclusive(65, 90);
+
+
+	return new Part(pn, frailty, availability, cost, weight, complexity);
+}
+
+
+
+
+function generateNewOP (diff, wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsNum, opNum) {
+
+	wp += randVari();
+	partsArr = [];
+
+	if(diff == "easy") {
+		eff += randVari();
+		com += randVari(5);
+		redMor = getRndIntegerInclusive(0,2);
+	}
+	else if(diff == "med") {
+		eff += randVari();
+		com += randVari(12);
+		redMor = getRndIntegerInclusive(1,4);
+	}
+	else if(diff == "hard") {
+		eff += randVari();
+		com += randVari(15);
+		redMor = getRndIntegerInclusive(5,9);
+	}
+
+	//generate parts
+	if(type=="assembly") {
+		for (let i = 0; i < partsNum; i++) {
+			partsArr.push( generateNewPart(opNum) );// 01-323-09
+		}
+	}
+
+	let o = new OP(wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr)
+	o.calcPoteSavings();
+	return o;
+}
+
+
+
+
+function Product (name, shape, diff, OP, numOfSections, numOfWorkstations, totalWP, bom, totalMaterialCost, netTotalCost) {
+	this.name = name;
+	this.difficultyLevel = diff;
+	this.shape = shape;
+	this.opArr = OP;
+	this.numOfSections = numOfSections;
+	this.numOfWorkstations = numOfWorkstations;
+	this.totalWP = totalWP;
+	this.bom = bom;
+	this.totalMaterialCost = totalMaterialCost;
+	this.netTotalCost = netTotalCost;
+
+	this.print = function () {
+		let opA = [];
+		for (let i = 0; i < this.opArr.length; i++) {
+			opA.push("");
+			opA.push(this.opArr[i].print());
+		}
+
+		let r = "<table>";
+		let arr = [
+			"Name", this.name + this.shape,
+			"Difficulty", this.difficultyLevel,
+			"Sections Count", this.numOfSections,
+			"Total WP", this.totalWP,
+			"BOM", this.bom.length,
+			
+			"Total Material Cost", this.totalMaterialCost,
+			"Net total Cost", this.netTotalCost,
+
+			"OP array", this.opArr.length +"\n" + displayTable(opA)
+		];
+
+		
+		return displayTable(arr);
+	}
+}
+
+
+function OP (wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr) {
+	this.wp = wp;
+	this.eff = eff;
+	this.commLogPote = Math.max(0,com);
+	this.workstation = wkstn;
+	this.typeOfOP = type;
+	this.reduceMorale = redMor;
+	this.progressSection = progSec;
+	this.requiredRole = reqRole;
+	this.potentialSavings = 0;
+	this.partsArr = partsArr;
+
+	this.calcPoteSavings = function () {
+		this.potentialSavings = this.wp * (100 - this.eff)/100;
+	}
+
+
+	this.print = function() {
+		let ptA = [];
+		for (let i = 0; i < this.partsArr.length; i++) {
+			ptA.push("");
+			ptA.push(this.partsArr[i].print());
+		}
+
+		let arr = [
+			"WP", this.wp,
+			"EFF", this.eff,
+			"CL Pote", this.commLogPote,
+			"WKSTN", this.workstation,
+			"Type", this.typeOfOP,
+			"Reduce Morale", this.reduceMorale,
+			"Section", this.progressSection,
+			"Requied Role", this.requiredRole,
+			"Pote Savings", this.potentialSavings,
+
+			"Parts", this.partsArr.length +"\n" + displayTable(ptA)
+
+		];
+		return displayTable(arr);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+function generateRandBen () {
+		let rd = Math.floor(Math.random() * 10);
+		let b = "" + rd +""+ Math.floor(Math.random() * 10) +
+		""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +
+		""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +
+		""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10);
+
+		return b;
+	}
+
+function defaultNewToolProduct (productID) {
+	let dueDate = 40;
+	let t = new ToolProduct(generateRandBen(), 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID, "emtpy");
+	t.init();
+	return t;
+}
+
+function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID, currentStatus, totalMaterialCost, netTotalCost) {
+	
+	this.perc = perc;
+	this.totalWP = company.products[productID].totalWP;
+	this.opProgressArr = [];
+
+	this.ben = ben;
+	this.shortages = shortages;
+	this.findings = findings;
+	this.inTest = inTest;
+	this.isComplete = isComplete;
+	this.startingShift = startingShift;
+	this.dueShift = dueShift;
+	this.productID = productID;
+	this.productIDName = company.products[productID].name;
+	this.currentStatus = currentStatus;
+	this.totalMaterialCost = totalMaterialCost;
+	this.netTotalCost = netTotalCost;
+
+	this.workstationsTotalWP = [];
+
+
+	this.init = function() {
+		Object.assign(this.opProgressArr, company.products[this.productID].opArr);
+		for (let index = 0; index < company.products[this.productID].numOfWorkstations; index++) {
+			this.workstationsTotalWP.push(0);
+		}
+
+		for (let index = 0; index < this.opProgressArr.length; index++) {
+			//adding perc value to each OP
+			this.opProgressArr[index].perc = 0;
+			//calc total for each workstation
+			this.workstationsTotalWP[this.opProgressArr[index].workstation - 1] += this.opProgressArr[index].wp;
+		}
+console.log(this);
+	}
+
+	this.print = function() {
+		let c = "A";
+		if (this.inTest) c = "T";
+		let testColor = "#d71";
+		let col = "#1c1";
+		if (this.inTest) col = testColor;
+		let barRatio = this.totalWP/150
+		
+		let s = [
+			"BEN", this.ben,
+			"Product ID", this.productIDName,
+			"Total WP", this.totalWP,
+			"Percent", c + Math.floor(this.perc)
+		]
+
+
+		let ss = drawSpansAndDrawBar(this.perc, this.totalWP, 150, "|", col, "#000") + "\n";
+		let sW = [];
+		sW.push("WS");
+		sW.push("WP");
+		for (let index = 0; index < this.workstationsTotalWP.length; index++) {
+			sW.push(index+1);
+			sW.push(drawSpansAndDrawBar(0, this.workstationsTotalWP[index], this.workstationsTotalWP[index]/barRatio, "|", col, "#000") + " " + this.workstationsTotalWP[index]);
+		}
+		ss += displayTable(sW, 2)
+
+		let sss = [
+			"Shortages", this.shortages,
+			"Total WP", this.totalWP,
+			"Starting Shift", this.startingShift
+		];
+		
+
+
+		return displayTable(s, 2) + ss + displayTable(sss, 2);
+	}
+	this.increasePerc = function(add) {
+		
+		this.perc = Math.min(this.perc + add,100);
+		if (this.perc >= 100) {
+			if(this.inTest) {
+				if(this.shortages > 0) this.shortages--;
+				else this.isComplete = true;
+			}
+			else {
+				this.inTest = true;
+				this.perc -= 100
+			}
+		} else if (this.perc < 0) {
+			this.perc = 0;
+		}
+
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function Tool() {
+	this.ben =""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) +""+ Math.floor(Math.random() * 10) 
+	this.perc = 0;
+	this.shortages = Math.floor(Math.random() * 30);
+	this.passedILQnum = 0;
+	this.inTest = false;
+	this.isComplete = false;
+	this.startingShift = company.shift;
+	this.print = function() {
+		let c = "A";
+		if (this.inTest) c = "T";
+		let testColor = "#d71";
+		let col = "#1c1";
+		if (this.inTest) col = testColor;
+		
+		let s = "BEN: "+
+		this.ben+"\nPercent: " + c + Math.floor(this.perc) +
+
+
+		"\n" + drawSpansAndDrawBar(this.perc, 100, 150, "|", col, "#000") +
+
+		"\nShortages: "+this.shortages+
+		"\nPassed ILQ: "+this.passedILQnum+
+		"\n\nStarting Shift: " +this.startingShift+"";
+		
+		return s;
+	}
+	this.increasePerc = function(add) {
+		
+		this.perc = Math.min(this.perc + add,100);
+		if (this.perc >= 100) {
+			if(this.inTest) {
+				if(this.shortages > 0) this.shortages--;
+				else this.isComplete = true;
+			}
+			else {
+				this.inTest = true;
+				this.perc -= 100
+			}
+		} else if (this.perc < 0) {
+			this.perc = 0;
+		}
+
+	}
+}
+
+
+
+
+
+function formatMoney(num) {
+	let n = Math.floor(num/1000);
+	let r = "" + n;
+	let s = ""+num;
+	r = r + ",<span style='font-size:90%'>" + s.slice(-3) + "</span>";
+return r;
+}
+
+
+
+
+function drawSpansAndDrawBar(min, max, length, char, color1, color2) {
+	return "<span class='menu_bar'>" +
+	drawBar(min, max, length, char, color1, color2) + 
+	"</span>";
+}
+
+
+
+function drawBar(min, max, length, char, color1, color2) {
+	let p = Math.min(Math.floor((min/max)*length), length);
+
+	let r = "<span style='color:" + color1 + "'>";
+	for(let i = 0; i < p; i++) {
+		r = r + char;
+	}
+	r = r + "</span><span style='color:" + color2 + "'>";
+	for(let i = p; i < length; i++) {
+		r = r + char;
+	}
+	r = r + "</span>";
+
+	return r;
+}
+
+function setDPI(canvas, dpi) {
+    // Set up CSS size.
+    canvas.style.width = canvas.style.width || canvas.width + 'px';
+    canvas.style.height = canvas.style.height || canvas.height + 'px';
+
+    // Get size information.
+    var scaleFactor = dpi / 96;
+    var width = parseFloat(canvas.style.width);
+    var height = parseFloat(canvas.style.height);
+
+    // Backup the canvas contents.
+    var oldScale = canvas.width / width;
+    var backupScale = scaleFactor / oldScale;
+    var backup = canvas.cloneNode(false);
+    backup.getContext('2d').drawImage(canvas, 0, 0);
+
+    // Resize the canvas.
+    var ctx = canvas.getContext('2d');
+    canvas.width = Math.ceil(width * scaleFactor);
+    canvas.height = Math.ceil(height * scaleFactor);
+
+    // Redraw the canvas image and scale future draws.
+    ctx.setTransform(backupScale, 0, 0, backupScale, 0, 0);
+    ctx.drawImage(backup, 0, 0);
+    ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
+}
+
+function pop_i(arr, i) {
+	arr.copyWithin(i,i+1,arr.length);
+	arr.pop();
+}
+
+function chance(perc) {
+	
+	return perc > Math.floor(Math.random() * 100);
+}
+
+function getRndIntegerInclusive(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) ) + min;
+}
+
+function btn_hireTech(cost) {
+	hireTech(cost);
+	redraw();
+}
+
+
+
+function hireTech(cost) {
+	company.techs.push(new Tech());
+	//Easter Egg
+	if(chance(3)) {
+
+		if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=0;
+			company.techs[n].testProf=0;
+			company.techs[n].assembProfGrowth=9;
+			company.techs[n].testProfGrowth=9;
+			company.techs[n].name="Patrick Star";
+		}
+		else if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=0;
+			company.techs[n].testProf=8;
+			company.techs[n].assembProfGrowth=0;
+			company.techs[n].testProfGrowth=9;
+			company.techs[n].name="Cool Ron";
+		}
+		else if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=7;
+			company.techs[n].testProf=7;
+			company.techs[n].assembProfGrowth=1;
+			company.techs[n].testProfGrowth=1;
+			company.techs[n].name="Ron Shawn";
+		}
+		else if(chance(20)) {
+			let n = company.techs.length-1
+			company.techs[n].assembProf=2;
+			company.techs[n].testProf=7;
+			company.techs[n].assembProfGrowth=2;
+			company.techs[n].testProfGrowth=6;
+			company.techs[n].name="Other Sean";
+		}
+	}
+	company.addToMoney(-1*cost);
+}
+
+function payForRandShortage() {
+	/*
+	let rand = Math.floor(Math.random() * company.tools.length)
+	
+	if(company.tools[rand].shortages > 0) {
+		company.tools[rand].shortages--;
+		company.money = company.money - 1000;
+		addAct("Paid for shortage on " + company.tools[rand].ben);
+	}
+	redraw();*/
+		addAct("Currently removed feature");
+}
+
+function buyNewBay() {
+	company.addToMoney(-1*COST_OF_NEW_BAY);
+	company.bays.push(new Bay());
+	
+	if(menu_sel_col_1_tab_num==2)
+		drawNewGUI("newGUI");
+	if(menu_sel_col_2_tab_num==2)
+		drawNewGUI("techs");
+
+	redraw();
+}
+
+function gameOver () {
+	
+//document.getElementById("body").innerHTML = "GAME OVER";
+alert("Game Over");
+clearInterval(main_loop);
+}
+
+
+let tttt = null;
+function newTest() {
+
+	//tttt = generateNewProduct("easy");
+	tttt = generateNewProduct("easy");
+	document.getElementById("controlButtons").innerHTML = tttt.print();
+	redraw();
+}
+
+
+
+
+function drawControlButtons(sel) {
+	let e = document.getElementById("controlButtons");
+	e.innerHTML = "Tech #: "+sel+"\n<button onclick='btn_fireTech(" + sel + ")'>Fire</button>"+
+		"<button onclick='btn_giveTechRaise(" + sel + ")'>Give raise</button>\n"+
+		"<button onclick='promoteQT("+ sel +")'>Promote to QT</button>"+
+		"<button onclick='promoteTest("+ sel +")'>Promote to Test</button>";
+}
+
+
+
+
+function drawCompanyGUI() {
+	let c = " class='td_with_padding'";
+	let g = "<table><tr>"+
+	"<td"+c+">Money</td>"+
+	"<td"+c+">Quarter</td>"+
+	"<td"+c+">Shift</td>"+
+	"<td"+c+">Time</td>" +
+	"<td"+c+">Techs</td>" +
+	"<td"+c+">Bays</td>"+
+	"<td"+c+">Products</td>"+
+	"<td"+c+">Backlog</td>"+
+	
+	"</tr><tr><td>" + formatMoney(company.money)+
+	"<td"+c+">" + company.quarter+"</td>" + 
+	"<td"+c+">" + company.shift+"</td>" + 
+	"<td"+c+">" + company.time+"</td>" + 
+	"<td"+c+">" + company.techs.length + "</td>" + 
+	"<td"+c+">" + company.bays.length +"</td>" + 
+	"<td"+c+">" + company.products.length +"</td>" + 
+	"<td"+c+">" + company.tool_backlog.length +"</td>" + 
+	"</tr>";
+
+
+
+	document.getElementById("mainStats_gui").innerHTML = g;
+
+	drawRecentActions ();
+}
+
+
+
+
+
+function drawRecentActions () {
+let s = "\nRecent Actions:<hr><span style='color:#aaa'>";
+
+	
+	for(let i = company.recentActions.length-1; i > -1; i--) {
+		s=s +"<div class='recentActions2'>"+ company.recentActions[i] +"</div>";
+	}
+	
+document.getElementById("recentActions").innerHTML = s + "</span>";
+}
+
+
+
+
+
+
+
+function updateCalendar() {
+	cvs = document.getElementById("schedule");
+	ctxI = cvs.getContext("2d");
+	setDPI(cvs,96*4);
+	ctxI.clearRect(0, 0, cvs.width, cvs.height);
+
+	let x = 0;
+	let y = 17;
+	let intvl = 4;
+	let payrollNext = intvl * (((14 - (company.shift%14)) * 12) - company.time);
+
+	let toolNext = intvl * (((6 - (company.shift % 6)) * 12) - company.time);
+	let toolNext2 = intvl * (((5 - (company.shift % 5)) * 12) - company.time);
+
+	ctxI.font = "18px Lucida Console";
+	ctxI.fillStyle = "#ccf";
+	
+	ctxI.strokeStyle = "#99e";
+	for (let i = 0; i < 15; i++) {
+		//ctxI.fillText("|", i*intvl,y);
+		
+		ctxI.rect(i*intvl*12-(company.time*intvl), 0, intvl*12, 22);
+		ctxI.stroke();
+	}
+	ctxI.fillStyle = "#000";
+	ctxI.fillText("💸", payrollNext,y)
+	ctxI.fillText("⬤", toolNext,y)
+	ctxI.fillText("◆", toolNext2,y)
+
+}
+
+
+
+
+
+
+function switchPage(colNum, pageName) {
+
+	const arr = ["Techs","Products","Bays"];
+	
+	let pageNum = -1;
+	for (let i = 0; i < arr.length; i++) {
+		if(pageName==arr[i])
+			pageNum = i;
+	}
+
+	let id = "";
+	if(colNum==1) {
+		menu_sel_col_1_tab_num = pageNum;
+		id = "newGUI";
+	}
+	else if(colNum==2) {
+		menu_sel_col_2_tab_num = pageNum;
+		id = "techs";
+	}
+
+	
+	if(pageNum == 2) {
+		drawNewGUI(id);
+	}
+
+	redraw();
+}
+
+
+
+
+function updateBayGUI(eleID) {
+	let pb;
+		
+		for(let i = 0; i < company.bays.length; i++) {
+				
+				drawINDVCanvasGUI(i,eleID);
+				pb =  document.getElementById("bay"+eleID+i);
+			if(company.bays[i].assignedTool != null) {
+				pb.innerHTML = "Bay "+(i+1)+"<br>BEN: ________\n" + company.bays[i].assignedTool.print();
+			} else
+				pb.innerHTML = "Bay "+(i+1)+"<br>BEN: ________";
+		}
+}
+
+
+
+
+function drawNewGUI(eleID) {
+	if(company.bays.length > 0) {
+		let sss = "<tr>";
+
+		for(let i = 0; i < company.bays.length; i++) {
+
+			sss=sss+"<td class='gametable'><p class='gameP' id='bay"+ eleID + i +"'>Bay "+(i+1)+"<br>BEN: ________</p></td>";
+			
+		}
+		sss=sss+"</tr><tr>";
+
+		for(let i = 0; i < company.bays.length; i++) {
+
+			sss=sss+"<td class='invisTechTD'>"+
+			"<canvas class='assignedTechCanvas' id='t" + eleID + i + "' width='44' height='75'></canvas>"+
+			"<canvas class='assignedTechCanvas' id='tt" + eleID + i + "' width='44' height='75'></canvas>"+
+			"<canvas class='assignedTechCanvas' id='ttt" + eleID + i + "' width='44' height='75'></canvas>"+
+			"</td>";
+		}
+		sss=sss+"</tr>";
+
+		let ele = document.getElementById(eleID);
+		ele.innerHTML = sss;
+		
+	}
+}
+
+
+
+
+
+function drawINDVCanvasGUI(i, eleID) {
+
+	let t_id = "";
+	for(let aa = 0; aa < maxTechsInBay ; aa++) {
+		t_id = t_id + "t";
+		cvs = document.getElementById(t_id + eleID + i);
+		ctxI = cvs.getContext("2d");
+		setDPI(cvs,96*4);
+
+		ctxI.clearRect(0, 0, cvs.width, cvs.height);
+
+		if(aa < company.bays[i].assignedTechs.length) {
+			let ii = company.bays[i].assignedTechs[aa];
+			drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
+
+			if(userSel==aa) cvs.style.backgroundColor = "yellow";
+			else cvs.style.backgroundColor = "";
+
+			cvs.addEventListener('click', function() {
+				btn_changeSelTech(ii);
+
+			});
+		}
+	}
+	
+
+}
+
+
+
+
+function drawTechShape(x, y, morale, role, ctx, lastPerc, name) {
+	let color2 = "white";
+	let color3 = "black";
+	let colorNum;
+	let gradient = ctx.createLinearGradient(x, y, x+2, y+3);
+
+
+	if(role==2) {
+		//green
+		gradient.addColorStop(0, "#2d8");
+		gradient.addColorStop(1, "green");
+	}else if(role==3) {
+		//blue
+		gradient.addColorStop(0, "#4bd");
+		gradient.addColorStop(1, "#00d");
+	}else if(role==4) {
+		//purple
+		gradient.addColorStop(0, "#b3f");
+		gradient.addColorStop(1, "#308");
+	}else if(role==0 || role==1) {
+		//white
+		gradient.addColorStop(0, "#beceee");
+		gradient.addColorStop(1, "#77c");
+	}
+
+	colorNum = gradient;
+
+
+	
+
+
+/*
+	ctx.beginPath();
+	ctx.fillStyle = color2;
+	ctx.arc(x,y,20,0,2 * Math.PI);
+	ctx.fill();*/
+	
+	ctx.beginPath();
+	ctx.fillStyle = colorNum;
+	ctx.arc(x,y,14,0,2 * Math.PI);
+	ctx.fill();
+	ctx.beginPath();
+	ctx.fillStyle = "white";
+	ctx.arc(x,y,12,-.1 * Math.PI,1.1 * Math.PI);
+	ctx.fill();
+	let offset = 3;
+	ctx.beginPath();
+	ctx.strokeStyle = color2;
+	ctx.moveTo(x-offset,y-8);
+	ctx.lineTo(x-offset,y-15);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.strokeStyle = color2;
+	ctx.moveTo(x+offset,y-8);
+	ctx.lineTo(x+offset,y-15);
+	ctx.stroke();
+	let r = 20;
+	let h = 8;
+	let w = 12;
+	let cap_y = y-3;
+	ctx.beginPath();
+	ctx.moveTo(x-w,cap_y );
+	ctx.fillStyle = colorNum;
+	ctx.arcTo(x,cap_y+h,x+w,cap_y,r);
+	ctx.fill();
+
+	//eyes
+	ctx.beginPath();
+	ctx.fillStyle =color3;
+	ctx.arc(x-5,y+3,2,0,2 * Math.PI);
+	ctx.fill();
+	ctx.fillStyle = color3;
+	ctx.arc(x+5,y+3,2,0,2 * Math.PI);
+	ctx.fill();
+
+
+
+	//mouth
+	if(morale>=7) {
+		ctx.beginPath()
+		ctx.strokeStyle =color3;
+		let n = .15
+		ctx.arc(x,y+6,5,(0+n) * Math.PI,(1-n) * Math.PI);
+		ctx.stroke();
+	}else if(morale>=5) {
+		ctx.beginPath()
+		ctx.strokeStyle =color3;
+		ctx.moveTo(x-5,y+8);
+		ctx.lineTo(x+5,y+8);
+		ctx.stroke();
+	}else {
+		ctx.beginPath()
+		ctx.strokeStyle =color3;
+		let n = .15
+		ctx.arc(x,y+12,5,(1+n) * Math.PI,(0-n) * Math.PI);
+		ctx.stroke();
+	}
+
+	
+
+
+	if(role==1) {
+		ctx.font = "12px Lucida Console";
+		ctx.fillStyle = color3;
+		ctx.fillText("TEST", x-12,y+24)
+	}
+	ctx.font = "10px Lucida Console";
+	ctx.fillStyle = color3;
+	ctx.fillText(Math.round(lastPerc*100), x-4,y-28)
+	ctx.fillText(name.substring(0,5), x-12,y-18)
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function toggleSpeed() {
+	debugFlag1=true;
+}
+
+
+
+function progressHour() {
+	if(debugFlag1) {
+		if(!debug_FAST_MODE) {
+			clearInterval(main_loop);
+			main_loop = setInterval(progressTime, 80); 
+			debug_FAST_MODE = !debug_FAST_MODE;
+		} else {
+			clearInterval(main_loop);
+			main_loop = setInterval(progressTime, 1000);
+			debug_FAST_MODE = !debug_FAST_MODE;
+		}
+		debugFlag1 = false;
+	}
+	company.time++;
+
+	if(company.time > 11) {
+		newShift()
+	}
+}
+
+
+
+
+
+function completeTool(ben, startingShift) {
+	addAct(ben + " was completed in " + (company.shift - startingShift)+" shift(s). Added "+TOOL_COMPLETION_MONEY+" to Money.")
+	company.addToMoney(TOOL_COMPLETION_MONEY);
+}
+
+
+
+
+function progressTime() {
+	
+	progressHour();
+	doWorkEachBay();
+
+	redraw();
+}
+
+
+let cheatArray = [
+	"assembProf",
+	"testProf",
+	"qtProf"
+];
+
+function doTechWork(req_role, bay_i, techs_arr) {
+	let prog = 0;
+
+	let total_prog = 0;
+	let traineeCanWork = true;
+	
+	for(let i = 0; i < techs_arr.length; i++) {
+
+		company.techs[techs_arr[i]].lastProg = 0;
+		traineeCanWork = true;
+
+		//checking for trainee
+		if(company.techs[techs_arr[i]].role == 3) {
+			traineeCanWork = false;
+			for(let ii = 0; ii < techs_arr.length; ii++) {
+				//finding other techs that aren't a trainee
+				if(company.techs[techs_arr[ii]].role != 3) {
+					traineeCanWork = true;
+				}
+			}
+		}
+		
+
+		if(traineeCanWork && req_role == -1 || company.techs[techs_arr[i]].role == req_role) {
+			let varname = cheatArray[req_role];
+			if(req_role==-1)
+				varname = cheatArray[0];
+			prog = (company.techs[techs_arr[i]][varname] / 8)
+			
+			prog = prog * (company.techs[i].morale / 10);
+
+
+			company.bays[bay_i].assignedTool.increasePerc(prog);
+
+
+			if(company.bays[bay_i].assignedTool.isComplete) {
+				company.bays[bay_i].completeTool();
+			}
+
+			company.techs[techs_arr[i]].gainExp((prog * 3));
+			company.techs[techs_arr[i]].lastProg = prog;
+		}
+		total_prog += prog;
+		prog = 0;
+	}
+	
+	return total_prog;
+}
+
+
+
+
+
+
+function doWorkEachBay() {
+	let total_prog = 0;
+
+	for(let bay_i = 0; bay_i < company.bays.length; bay_i++) {
+		let tool = company.bays[bay_i].assignedTool;
+		if(tool) {
+			if(tool.inTest) {
+				//TEST
+				total_prog += doTechWork(1,bay_i,company.bays[bay_i].assignedTechs);
+			} else if(tool.passedILQnum < 1 && tool.perc > 40 || tool.passedILQnum < 2 && tool.perc > 80) {
+				//ILQ
+					total_prog += doTechWork(2,bay_i,company.bays[bay_i].assignedTechs);
+					if(tool.passedILQnum < 1 && tool.perc > 50) {
+						tool.passedILQnum++;
+					} else if(tool.passedILQnum < 2 && tool.perc > 90) {
+						tool.passedILQnum++;
+					}
+			} else {
+				//assembly
+				total_prog += doTechWork(-1,bay_i,company.bays[bay_i].assignedTechs);
+			}
+
+			
+		} else
+			if(chance(10)) {
+				company.bays[bay_i].assignedTool = new Tool();
+			}
+
+	}
+
+
+}
+
+
+
+
+
+let debug_console;
+
+function redraw() {
+	
+	drawCompanyGUI(); //Stats like Money
+	updateCalendar();
+	
+	if(menu_sel_col_1_tab_num==0)
+	drawTechPanel("newGUI");
+	else if(menu_sel_col_1_tab_num==1)
+	drawProductPanel("newGUI");
+	else if(menu_sel_col_1_tab_num==2)
+	updateBayGUI("newGUI");
+	
+	if(menu_sel_col_2_tab_num==0)
+	drawTechPanel("techs");
+	else if(menu_sel_col_2_tab_num==1)
+	drawProductPanel("techs");
+	else if(menu_sel_col_2_tab_num==2)
+	updateBayGUI("techs");
+
+}
+
+
+
+
+function promoteQT(i) {
+	company.techs[i].role = 2;
+	company.techs[i].wage += 1;
+	redraw();
+}
+function promoteTest(i) {
+	company.techs[i].role = 1;
+	company.techs[i].wage += 1;
+	redraw();
+}
+
+function drawPoints(num){
+	let s = "";
+	for(let i = 0; i < num; i++) {
+		s=s+"⧫"
+	}
+	return s;
+}
+
+function drawTechPanel(eleID){
+	let s = "<tr>";
+
+	for(let i = 0; i < company.techs.length; i++) {
+		
+		let sps = " <span style='font-size:60%'>(";
+		let spe = ")</span>";
+		
+		let array = [
+		"Name", company.techs[i].name + " " + drawMoraleAsString (company.techs[i].morale, company.techs[i].role, company.techs[i].vari),
+		"Role", roleArray[company.techs[i].role],
+		"Level", drawSpansAndDrawBar(company.techs[i].experiencePerc, 100, 48, "|", "#5df", "#000") + sps + Math.floor(company.techs[i].experiencePerc) + spe,
+		"Assembly Prof", company.techs[i].assembProf + sps + company.techs[i].assembProfGrowth + spe,
+		"Test Prof", company.techs[i].testProf + sps + company.techs[i].testProfGrowth + spe,
+		"QT Prof", company.techs[i].qtProf + sps + company.techs[i].qtProfGrowth + spe,
+		"Admin Prof", company.techs[i].adminProf + sps + company.techs[i].adminProfGrowth + spe,
+		"Wage", company.techs[i].wage
+		];
+		
+		s = s + "<td>" + displayTable(array) + "</td>";
+	}
+
+	document.getElementById(eleID).innerHTML = s + "</tr>";
+}
+
+
+function drawMoraleAsString (m, role, vari) {
+	let str = "🤩😎";
+	let c = "techIcon";
+
+	if(role==0)
+		c = c + " techIconAssembler";
+	else if(role==1)
+		c = c + " techIconTest";
+	else if(role==2)
+		c = c + " techIconQT";
+	else if(role==3)
+		c = c + " techIconTrainee";
+
+
+
+	if(vari==null || vari > 2 || vari < 0)
+		vari = 0;
+	vari*=2;
+	
+	//😷🤒🤕🤢😵🤧
+
+	if(m > 10) {
+		str = "🤩🤩";//😎
+	} else if(m >= 9) {
+		str = "😀☺️";//😃
+	} else if(m >= 7) {
+		str = "🙂🙂";
+	} else if(m >= 6) {
+		str = "😐😑";
+	} else if(m >= 5) {
+		str = "😒😕";
+	} else if(m >= 4) {
+		str = "🙁😟";//☹️
+	} else if(m >= 3) {
+		str = "😔😧";//😓
+	} else if(m >= 2) {
+		str = "🙁😟";
+	} else if(m >= 1) {
+		str = "😣😫";//😩
+	} else {
+		str = "😠😠";
+	}
+	
+	return "<span class='" + c + "'>" + str.substring(vari, vari+2) + "</span>";
+}
+
+
+
+
+function displayTable(array, opt){
+
+	let c = "class='techID'";
+	if(opt == 2)
+		c= "";
+	let ret = "<table "+c+">";
+	for (let i = 0; i+1 < array.length; i += 2) {
+		ret = ret + "<tr><td class='displayTableKey'>" + array[i] + ":  " + "</td><td class='displayTableValue'>" + array[i+1] + "</tr>";
+		
+	}
+	return ret + "</table>";
+
+}
+
+
+
+
+function btn_assignTech(tech_i, bay_i) {
+	assignTech(tech_i, bay_i);
+	redraw();
+}
+
+
+function assignTech(tech_i, bay_i) {
+	if(company.techs[tech_i].assignedTo > -1)
+		unassignTech(tech_i);
+	let isSuccess = company.bays[bay_i].assignTechToBay(tech_i);
+	if(isSuccess)
+		company.techs[tech_i].assignedTo = bay_i;
+}
+
+function unassignTech(tech_i) {
+	let arr = company.bays[company.techs[tech_i].assignedTo].assignedTechs;
+
+	for (let index = 0; index < arr.length; index++) {
+		if(arr[index]==tech_i)
+			pop_i(arr,index);
+		
+	}
+}
+
+
+function btn_fireTech(index) {
+	unassignTech(index);
+	pop_i(company.techs, index);
+	for(let i = 0; i < company.techs.length; i++) {
+		company.techs[i].setMorale(-1);
+	}
+	correctTechIndexNumbers(index);
+	redraw();
+}
+
+
+function correctTechIndexNumbers(index) {
+	for (let i = 0; i < company.bays.length; i++) {
+		for (let ii = 0; ii < company.bays[i].assignedTechs.length; ii++) {
+			if(company.bays[i].assignedTechs[ii] > index) {
+				company.bays[i].assignedTechs[ii]--;
+			}	
+		}
+		
+	}
+}
+
+
+
+function btn_giveTechRaise(index) {
+	company.techs[index].wage++;
+	company.techs[index].setMorale(5);
+	
+	redraw();
+
+}
+
+
+function btn_changeSelTech(num) {
+	userSel = num;
+	drawControlButtons(num);
+	
+}
+
+
+
+
+
+
+
+
+
+
+function addAct(s) {
+	company.recentActions.push(s);
+	if(company.recentActions.length > 20)
+		company.recentActions.shift();
+}
+
+function newShift() {
+
+	company.time=0;
+	company.shift++;
+
+	if(company.shift % 180 == 0) {
+		company.quarter++;
+	}
+	payShift();
+	if(company.shift%14==0) doPayroll();
+}
+
+
+function payShift() {
+	for(let i = 0; i <  company.techs.length; i++) {
+		company.payroll += company.techs[i].wage * 12
+	}
+}
+
+function doPayroll(){
+	let m = company.payroll;
+	company.addToMoney(-1*company.payroll);
+	addAct("💸 Payroll, minus " + m);
+	company.payroll = 0;
+}
+
+
+
+function mousetest(event) {
+	
+	let cav = document.getElementById("bob");
+
+	//move element under mouse
+	cav.style.right = window.innerWidth-event.clientX-(cav.offsetWidth/2) + "px";
+	cav.style.top = (event.clientY+30) + "px";
+
+	//draw tech
+	ctx = cav.getContext("2d");
+	setDPI(cav,96*4);
+	
+	ctx.clearRect(0, 0, cav.width, cav.height);
+	let ii = userSel;
+	drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctx, company.techs[ii].lastProg,company.techs[ii].name);
+
+	
+	/*
+	let pd = document.getElementById("productData");
+	pd.innerHTML = company.products[0].print();
+	*/
+}
+
+
+</script>
+
+</head>
+
+
+<body id="body" onmousemove="mousetest(event)" onload="init()">
+	<div class="container">
+		<h1 class="t">Supe Simulator</h1>
+		<div class="d recentActions1" onclick="toggleSpeed()">debug SuperSpeed</div>
+		<div id="mainStats_gui" colspan="2" class="c mainStats" style="font-size: 1.1em;" ></div>
+
+		<canvas id="schedule" width='1150' height='22' class="s sched"></canvas>
+
+		<ul class="c1h">
+			<a onclick="switchPage(1,'Techs')">Techs</a>
+			<a onclick="switchPage(1,'Products')">Products</a>
+			<a onclick="switchPage(1,'Bays')">Bays</a>
+		</ul>
+		<ul class="c2h">
+			<a onclick="switchPage(2,'Techs')">Techs</a>
+			<a onclick="switchPage(2,'Products')">Products</a>
+			<a onclick="switchPage(2,'Bays')">Bays</a>
+		</ul>
+		<div></div>
+		<table id="newGUI" class="col1 ovflX"></table>
+
+		<table id="techs" class="col2 ovflX"></table>
+
+		<p class="b1 gametable"  id="gui2"></p>
+		<div class="reA recentActions1" style="overflow-y: scroll;height: 400px;white-space: pre-line;" id="recentActions"></div>
+
+		<div id="controlButtons">Tech control buttons</div>
+	</div>
+	<canvas id="bob" class="techcanvas" style="position: absolute;" width="50" height="80">Test</canvas>
+
+	
+	
+</body>
+
+<!-- 
+	init()
+	progressTime()
+
+ -->
+ 
+ <!--
+	■▲▼◆⬣⬤▧
+	🤩😎
+	😀😃🙂☺️
+	😐😑😒😕
+	😔🙁😟☹️😧😣😓😫😩😠
+	😷🤒⬟🤕🤢😵🤧
+	👤💸📅🗓️📆📊🗃️🛠️🔨🔧🔩🏅
+	0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣🔟
+	🔼⏫
+	🟢🟡🔴
+-->
