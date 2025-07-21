@@ -1,0 +1,848 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Supe Simulator</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="style_sheet.css">
+
+
+<script>
+
+
+let menu_sel_col_1_tab_num = -1;
+let menu_sel_col_2_tab_num = -1;
+
+let main_loop;
+let animTimer = 0;
+let debugSetting = 0;
+let debug_FAST_MODE = false;
+let debugFlag1 = false;
+let userSel = 0;
+const maxTechsInBay = 3;
+const STARTING_MONEY = 25000;
+const COST_OF_NEW_BAY = 4000;
+const COST_OF_RAND_TECH = 4000;
+const TOOL_COMPLETION_MONEY = 20000;
+
+let cvs;
+let ctxI;
+
+
+let roleArray = [
+	"Assembler",
+	"Test Tech",
+	"Quality Tech",
+	"Trainee",
+	"PCFS",
+	"Lead",
+	"MFE"
+]
+let roleWageArray = [
+	12,
+	16,
+	14,
+	10,
+	16,
+	16,
+	20
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function defaultNewToolProduct (productID) {
+	let dueDate = 40;
+	let t = new ToolProduct(generateRandBen(), 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID, "emtpy");
+	t.init();
+	return t;
+}
+
+function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID, currentStatus, totalMaterialCost, netTotalCost) {
+	
+	this.perc = perc;
+	this.totalWP = company.products[productID].totalWP;
+	this.opProgressArr = [];
+
+	this.ben = ben;
+	this.shortages = shortages;
+	this.findings = findings;
+	this.inTest = inTest;
+	this.isComplete = isComplete;
+	this.startingShift = startingShift;
+	this.dueShift = dueShift;
+	this.productID = productID;
+	this.productIDName = company.products[productID].name;
+	this.currentStatus = currentStatus;
+	this.totalMaterialCost = totalMaterialCost;
+	this.netTotalCost = netTotalCost;
+
+	this.workstationsTotalWP = [];
+
+
+	this.init = function() {
+		Object.assign(this.opProgressArr, company.products[this.productID].opArr);
+		for (let index = 0; index < company.products[this.productID].numOfWorkstations; index++) {
+			this.workstationsTotalWP.push(0);
+		}
+
+		for (let index = 0; index < this.opProgressArr.length; index++) {
+			//adding perc value to each OP
+			this.opProgressArr[index].perc = 0;
+			//calc total for each workstation
+			this.workstationsTotalWP[this.opProgressArr[index].workstation - 1] += this.opProgressArr[index].wp;
+		}
+console.log(this);
+	}
+
+	this.print = function() {
+		let c = "A";
+		if (this.inTest) c = "T";
+		let testColor = "#d71";
+		let col = "#1c1";
+		if (this.inTest) col = testColor;
+		let barRatio = this.totalWP/150
+		
+		let s = [
+			"BEN", this.ben,
+			"Product ID", this.productIDName,
+			"Total WP", this.totalWP,
+			"Percent", c + Math.floor(this.perc)
+		]
+
+
+		let ss = drawSpansAndDrawBar(this.perc, this.totalWP, 150, "|", col, "#000") + "\n";
+		let sW = [];
+		sW.push("WS");
+		sW.push("WP");
+		for (let index = 0; index < this.workstationsTotalWP.length; index++) {
+			sW.push(index+1);
+			sW.push(drawSpansAndDrawBar(this.opProgressArr[index].perc, this.workstationsTotalWP[index], this.workstationsTotalWP[index]/barRatio, "|", col, "#000") + " " + this.workstationsTotalWP[index]);
+		}
+		ss += displayTable(sW, 2)
+
+		let sss = [
+			"Shortages", this.shortages,
+			"Total WP", this.totalWP,
+			"Starting Shift", this.startingShift
+		];
+		
+
+
+		return displayTable(s, 2) + ss + displayTable(sss, 2);
+	}
+	this.increasePerc = function(add) {
+		
+		this.perc = Math.min(this.perc + add,100);
+		if (this.perc >= 100) {
+			if(this.inTest) {
+				if(this.shortages > 0) this.shortages--;
+				else this.isComplete = true;
+			}
+			else {
+				this.inTest = true;
+				this.perc -= 100
+			}
+		} else if (this.perc < 0) {
+			this.perc = 0;
+		}
+
+	}
+	this.increasePercInOP = function(add) {
+		
+		this.perc = Math.min(this.perc + add,100);
+		if (this.perc >= 100) {
+			if(this.inTest) {
+				if(this.shortages > 0) this.shortages--;
+				else this.isComplete = true;
+			}
+			else {
+				this.inTest = true;
+				this.perc -= 100
+			}
+		} else if (this.perc < 0) {
+			this.perc = 0;
+		}
+
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function payForRandShortage() {
+	/*
+	let rand = Math.floor(Math.random() * company.tools.length)
+	
+	if(company.tools[rand].shortages > 0) {
+		company.tools[rand].shortages--;
+		company.money = company.money - 1000;
+		addAct("Paid for shortage on " + company.tools[rand].ben);
+	}
+	redraw();*/
+		addAct("Currently removed feature");
+}
+
+function buyNewBay() {
+	company.addToMoney(-1*COST_OF_NEW_BAY);
+	company.bays.push(new Bay());
+	
+	if(menu_sel_col_1_tab_num==2)
+		drawNewGUI("newGUI");
+	if(menu_sel_col_2_tab_num==2)
+		drawNewGUI("techs");
+
+	redraw();
+}
+
+
+let tttt = null;
+function newTest() {
+
+	//tttt = generateNewProduct("easy");
+	tttt = generateNewProduct("easy");
+	document.getElementById("controlButtons").innerHTML = tttt.print();
+	redraw();
+}
+
+
+
+
+function drawControlButtons(sel) {
+	let e = document.getElementById("controlButtons");
+	e.innerHTML = "Tech #: "+sel+"\n<button onclick='btn_fireTech(" + sel + ")'>Fire</button>"+
+		"<button onclick='btn_giveTechRaise(" + sel + ")'>Give raise</button>\n"+
+		"<button onclick='promoteQT("+ sel +")'>Promote to QT</button>"+
+		"<button onclick='promoteTest("+ sel +")'>Promote to Test</button>";
+}
+
+
+
+
+function drawCompanyGUI() {
+	let c = " class='td_with_padding'";
+	let g = "<table><tr>"+
+	"<td"+c+">Money</td>"+
+	"<td"+c+">Quarter</td>"+
+	"<td"+c+">Shift</td>"+
+	"<td"+c+">Time</td>" +
+	"<td"+c+">Techs</td>" +
+	"<td"+c+">Bays</td>"+
+	"<td"+c+">Products</td>"+
+	"<td"+c+">Backlog</td>"+
+	
+	"</tr><tr><td>" + formatMoney(company.money)+
+	"<td"+c+">" + company.quarter+"</td>" + 
+	"<td"+c+">" + company.shift+"</td>" + 
+	"<td"+c+">" + company.time+"</td>" + 
+	"<td"+c+">" + company.techs.length + "</td>" + 
+	"<td"+c+">" + company.bays.length +"</td>" + 
+	"<td"+c+">" + company.products.length +"</td>" + 
+	"<td"+c+">" + company.tool_backlog.length +"</td>" + 
+	"</tr>";
+
+
+
+	document.getElementById("mainStats_gui").innerHTML = g;
+
+	drawRecentActions ();
+}
+
+
+
+
+
+function drawRecentActions () {
+let s = "\nRecent Actions:<hr><span style='color:#aaa'>";
+
+	
+	for(let i = company.recentActions.length-1; i > -1; i--) {
+		s=s +"<div class='recentActions2'>"+ company.recentActions[i] +"</div>";
+	}
+	
+document.getElementById("recentActions").innerHTML = s + "</span>";
+}
+
+
+
+
+
+
+
+function updateCalendar() {
+	cvs = document.getElementById("schedule");
+	ctxI = cvs.getContext("2d");
+	setDPI(cvs,96*4);
+	ctxI.clearRect(0, 0, cvs.width, cvs.height);
+
+	let x = 0;
+	let y = 17;
+	let intvl = 4;
+	let payrollNext = intvl * (((14 - (company.shift%14)) * 12) - company.time);
+
+	let toolNext = intvl * (((6 - (company.shift % 6)) * 12) - company.time);
+	let toolNext2 = intvl * (((5 - (company.shift % 5)) * 12) - company.time);
+
+	ctxI.font = "18px Lucida Console";
+	ctxI.fillStyle = "#ccf";
+	
+	ctxI.strokeStyle = "#99e";
+	for (let i = 0; i < 15; i++) {
+		//ctxI.fillText("|", i*intvl,y);
+		
+		ctxI.rect(i*intvl*12-(company.time*intvl), 0, intvl*12, 22);
+		ctxI.stroke();
+	}
+	ctxI.fillStyle = "#000";
+	ctxI.fillText("💸", payrollNext,y)
+	ctxI.fillText("⬤", toolNext,y)
+	ctxI.fillText("◆", toolNext2,y)
+
+}
+
+
+
+
+
+
+function switchPage(colNum, pageName) {
+
+	const arr = ["Techs","Products","Bays"];
+	
+	let pageNum = -1;
+	for (let i = 0; i < arr.length; i++) {
+		if(pageName==arr[i])
+			pageNum = i;
+	}
+
+	let id = "";
+	if(colNum==1) {
+		menu_sel_col_1_tab_num = pageNum;
+		id = "newGUI";
+	}
+	else if(colNum==2) {
+		menu_sel_col_2_tab_num = pageNum;
+		id = "techs";
+	}
+
+	
+	if(pageNum == 2) {
+		drawNewGUI(id);
+	}
+
+	redraw();
+}
+
+
+
+
+function updateBayGUI(eleID) {
+	let pb;
+		
+		for(let i = 0; i < company.bays.length; i++) {
+				
+				drawINDVCanvasGUI(i,eleID);
+				pb =  document.getElementById("bay"+eleID+i);
+			if(company.bays[i].assignedTool != null) {
+				pb.innerHTML = "Bay "+(i+1)+"<br>" + company.bays[i].assignedTool.print();
+			} else
+				pb.innerHTML = "Bay "+(i+1)+"<br>BEN: ________";
+		}
+}
+
+
+
+
+function drawNewGUI(eleID) {
+	if(company.bays.length > 0) {
+		let sss = "<tr>";
+
+		for(let i = 0; i < company.bays.length; i++) {
+
+			sss=sss+"<td class='gametable'><p class='gameP' id='bay"+ eleID + i +"'>Bay "+(i+1)+"<br>BEN: ________</p></td>";
+			
+		}
+		sss=sss+"</tr><tr>";
+
+		for(let i = 0; i < company.bays.length; i++) {
+
+			sss=sss+"<td class='invisTechTD'>"+
+			"<canvas class='assignedTechCanvas' id='t" + eleID + i + "' width='44' height='75'></canvas>"+
+			"<canvas class='assignedTechCanvas' id='tt" + eleID + i + "' width='44' height='75'></canvas>"+
+			"<canvas class='assignedTechCanvas' id='ttt" + eleID + i + "' width='44' height='75'></canvas>"+
+			"</td>";
+		}
+		sss=sss+"</tr>";
+
+		let ele = document.getElementById(eleID);
+		ele.innerHTML = sss;
+		
+	}
+}
+
+
+
+
+
+function drawINDVCanvasGUI(i, eleID) {
+
+	let t_id = "";
+	for(let aa = 0; aa < maxTechsInBay ; aa++) {
+		t_id = t_id + "t";
+		cvs = document.getElementById(t_id + eleID + i);
+		ctxI = cvs.getContext("2d");
+		setDPI(cvs,96*4);
+
+		ctxI.clearRect(0, 0, cvs.width, cvs.height);
+
+		if(aa < company.bays[i].assignedTechs.length) {
+			let ii = company.bays[i].assignedTechs[aa];
+			drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
+
+			if(userSel==aa) cvs.style.backgroundColor = "yellow";
+			else cvs.style.backgroundColor = "";
+
+			cvs.addEventListener('click', function() {
+				btn_changeSelTech(ii);
+
+			});
+		}
+	}
+	
+
+}
+
+
+
+
+function drawTechShape(x, y, morale, role, ctx, lastPerc, name) {
+	let color2 = "white";
+	let color3 = "black";
+	let colorNum;
+	let gradient = ctx.createLinearGradient(x, y, x+2, y+3);
+
+
+	if(role==2) {
+		//green
+		gradient.addColorStop(0, "#2d8");
+		gradient.addColorStop(1, "green");
+	}else if(role==3) {
+		//blue
+		gradient.addColorStop(0, "#4bd");
+		gradient.addColorStop(1, "#00d");
+	}else if(role==4) {
+		//purple
+		gradient.addColorStop(0, "#b3f");
+		gradient.addColorStop(1, "#308");
+	}else if(role==0 || role==1) {
+		//white
+		gradient.addColorStop(0, "#beceee");
+		gradient.addColorStop(1, "#77c");
+	}
+
+	colorNum = gradient;
+
+
+	
+
+
+/*
+	ctx.beginPath();
+	ctx.fillStyle = color2;
+	ctx.arc(x,y,20,0,2 * Math.PI);
+	ctx.fill();*/
+	
+	ctx.beginPath();
+	ctx.fillStyle = colorNum;
+	ctx.arc(x,y,14,0,2 * Math.PI);
+	ctx.fill();
+	ctx.beginPath();
+	ctx.fillStyle = "white";
+	ctx.arc(x,y,12,-.1 * Math.PI,1.1 * Math.PI);
+	ctx.fill();
+	let offset = 3;
+	ctx.beginPath();
+	ctx.strokeStyle = color2;
+	ctx.moveTo(x-offset,y-8);
+	ctx.lineTo(x-offset,y-15);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.strokeStyle = color2;
+	ctx.moveTo(x+offset,y-8);
+	ctx.lineTo(x+offset,y-15);
+	ctx.stroke();
+	let r = 20;
+	let h = 8;
+	let w = 12;
+	let cap_y = y-3;
+	ctx.beginPath();
+	ctx.moveTo(x-w,cap_y );
+	ctx.fillStyle = colorNum;
+	ctx.arcTo(x,cap_y+h,x+w,cap_y,r);
+	ctx.fill();
+
+	//eyes
+	ctx.beginPath();
+	ctx.fillStyle =color3;
+	ctx.arc(x-5,y+3,2,0,2 * Math.PI);
+	ctx.fill();
+	ctx.fillStyle = color3;
+	ctx.arc(x+5,y+3,2,0,2 * Math.PI);
+	ctx.fill();
+
+
+
+	//mouth
+	if(morale>=7) {
+		ctx.beginPath()
+		ctx.strokeStyle =color3;
+		let n = .15
+		ctx.arc(x,y+6,5,(0+n) * Math.PI,(1-n) * Math.PI);
+		ctx.stroke();
+	}else if(morale>=5) {
+		ctx.beginPath()
+		ctx.strokeStyle =color3;
+		ctx.moveTo(x-5,y+8);
+		ctx.lineTo(x+5,y+8);
+		ctx.stroke();
+	}else {
+		ctx.beginPath()
+		ctx.strokeStyle =color3;
+		let n = .15
+		ctx.arc(x,y+12,5,(1+n) * Math.PI,(0-n) * Math.PI);
+		ctx.stroke();
+	}
+
+	
+
+
+	if(role==1) {
+		ctx.font = "12px Lucida Console";
+		ctx.fillStyle = color3;
+		ctx.fillText("TEST", x-12,y+24)
+	}
+	ctx.font = "10px Lucida Console";
+	ctx.fillStyle = color3;
+	ctx.fillText(Math.round(lastPerc*100), x-4,y-28)
+	ctx.fillText(name.substring(0,5), x-12,y-18)
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function completeTool(ben, startingShift) {
+	addAct(ben + " was completed in " + (company.shift - startingShift)+" shift(s). Added "+TOOL_COMPLETION_MONEY+" to Money.")
+	company.addToMoney(TOOL_COMPLETION_MONEY);
+}
+
+
+
+
+
+let cheatArray = [
+	"assembProf",
+	"testProf",
+	"qtProf"
+];
+
+
+
+
+
+
+function drawProductPanel (eleID) {
+	let s = "<table>";
+
+	for(let i = 0; i < company.products.length; i++) {
+		
+		let array = [
+		"Num of OPs", company.products[i].opArr.length,
+		"Num of Sections", company.products[i].numOfSections,
+		"Total WP", company.products[i].totalWP,
+		"BOM qty", company.products[i].bom.length,
+		"Total Material Cost", company.products[i].opArr.length,
+		"Net Total Cost", company.products[i].opArr.length
+		];
+		
+		s = s + "<td class='gametable' style='float:left;'>" + company.products[i].name + displayTable(array,2) + "</td>";
+	}
+
+	document.getElementById(eleID).innerHTML = s + "</table>";
+}
+
+
+
+let debug_console;
+
+
+
+
+function promoteQT(i) {
+	company.techs[i].role = 2;
+	company.techs[i].wage += 1;
+	redraw();
+}
+function promoteTest(i) {
+	company.techs[i].role = 1;
+	company.techs[i].wage += 1;
+	redraw();
+}
+
+function drawPoints(num){
+	let s = "";
+	for(let i = 0; i < num; i++) {
+		s=s+"⧫"
+	}
+	return s;
+}
+
+function drawTechPanel(eleID){
+	let s = "<tr>";
+
+	for(let i = 0; i < company.techs.length; i++) {
+		
+		let sps = " <span style='font-size:60%'>(";
+		let spe = ")</span>";
+		
+		let array = [
+		"Name", company.techs[i].name + " " + drawMoraleAsString (company.techs[i].morale, company.techs[i].role, company.techs[i].vari),
+		"Role", roleArray[company.techs[i].role],
+		"Level", drawSpansAndDrawBar(company.techs[i].experiencePerc, 100, 48, "|", "#5df", "#000") + sps + Math.floor(company.techs[i].experiencePerc) + spe,
+		"Assembly Prof", company.techs[i].assembProf + sps + company.techs[i].assembProfGrowth + spe,
+		"Test Prof", company.techs[i].testProf + sps + company.techs[i].testProfGrowth + spe,
+		"QT Prof", company.techs[i].qtProf + sps + company.techs[i].qtProfGrowth + spe,
+		"Admin Prof", company.techs[i].adminProf + sps + company.techs[i].adminProfGrowth + spe,
+		"Wage", company.techs[i].wage
+		];
+		
+		s = s + "<td>" + displayTable(array) + "</td>";
+	}
+
+	document.getElementById(eleID).innerHTML = s + "</tr>";
+}
+
+
+function drawMoraleAsString (m, role, vari) {
+	let str = "🤩😎";
+	let c = "techIcon";
+
+	if(role==0)
+		c = c + " techIconAssembler";
+	else if(role==1)
+		c = c + " techIconTest";
+	else if(role==2)
+		c = c + " techIconQT";
+	else if(role==3)
+		c = c + " techIconTrainee";
+
+
+
+	if(vari==null || vari > 2 || vari < 0)
+		vari = 0;
+	vari*=2;
+	
+	//😷🤒🤕🤢😵🤧
+
+	if(m > 10) {
+		str = "🤩🤩";//😎
+	} else if(m >= 9) {
+		str = "😀☺️";//😃
+	} else if(m >= 7) {
+		str = "🙂🙂";
+	} else if(m >= 6) {
+		str = "😐😑";
+	} else if(m >= 5) {
+		str = "😒😕";
+	} else if(m >= 4) {
+		str = "🙁😟";//☹️
+	} else if(m >= 3) {
+		str = "😔😧";//😓
+	} else if(m >= 2) {
+		str = "🙁😟";
+	} else if(m >= 1) {
+		str = "😣😫";//😩
+	} else {
+		str = "😠😠";
+	}
+	
+	return "<span class='" + c + "'>" + str.substring(vari, vari+2) + "</span>";
+}
+
+
+
+
+
+
+
+
+
+
+function correctTechIndexNumbers(index) {
+	for (let i = 0; i < company.bays.length; i++) {
+		for (let ii = 0; ii < company.bays[i].assignedTechs.length; ii++) {
+			if(company.bays[i].assignedTechs[ii] > index) {
+				company.bays[i].assignedTechs[ii]--;
+			}	
+		}
+		
+	}
+}
+
+
+
+
+
+
+
+
+
+function mousetest(event) {
+	
+	let cav = document.getElementById("bob");
+
+	//move element under mouse
+	cav.style.right = window.innerWidth-event.clientX-(cav.offsetWidth/2) + "px";
+	cav.style.top = (event.clientY+30) + "px";
+
+	//draw tech
+	ctx = cav.getContext("2d");
+	setDPI(cav,96*4);
+	
+	ctx.clearRect(0, 0, cav.width, cav.height);
+	let ii = userSel;
+	drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctx, company.techs[ii].lastProg,company.techs[ii].name);
+
+	
+	/*
+	let pd = document.getElementById("productData");
+	pd.innerHTML = company.products[0].print();
+	*/
+}
+
+
+</script>
+
+<script type="text/csv" src="/roleArray.csv" id="rA"></script>
+
+<script src="js_files/names.js"></script>
+<script src="js_files/company.js"></script>
+<script src="js_files/bay.js"></script>
+<script src="js_files/tech.js"></script>
+<script src="js_files/generalHelperFunctions.js"></script>
+<script src="js_files/tool.js"></script>
+<script src="js_files/csv.js"></script>
+<script src="js_files/product.js"></script>
+<script src="js_files/part.js"></script>
+<script src="js_files/op.js"></script>
+<script src="js_files/main.js"></script>
+
+</head>
+
+
+<body id="body" onmousemove="mousetest(event)" onload="init()">
+	<div class="container">
+		<h1 class="t">Supe Simulator</h1>
+		<div class="d recentActions1" onclick="toggleSpeed()">debug SuperSpeed</div>
+		<div id="mainStats_gui" colspan="2" class="c mainStats" style="font-size: 1.1em;" ></div>
+
+		<canvas id="schedule" width='1000' height='22' class="s sched"></canvas>
+<table class="g">
+	<tr><td>
+		<ul class="c1h">
+			<a onclick="switchPage(1,'Techs')" style="float:left">Techs</a>
+			<a onclick="switchPage(1,'Products')" style="float:left">Products</a>
+			<a onclick="switchPage(1,'Bays')" style="float:left">Bays</a>
+		</ul>
+		</td>
+		<td>
+		<table id="newGUI" class="col1 ovflX"></table>
+	</td>
+		</tr>
+		<tr>
+		<td>
+			<ul class="c2h">
+				<a onclick="switchPage(2,'Techs')" style="float:left">Techs</a>
+				<a onclick="switchPage(2,'Products')" style="float:left">Products</a>
+				<a onclick="switchPage(2,'Bays')" style="float:left">Bays</a>
+			</ul>
+		</td>
+		<td>
+			<table id="techs" class="col2 ovflX"></table>
+		</td></tr>
+	</table>
+		<p class="b1 gametable"  id="gui2"></p>
+		<div class="reA recentActions1" style="overflow-y: scroll;height: 400px;white-space: pre-line;" id="recentActions"></div>
+
+		<div id="controlButtons">Tech control buttons</div>
+	</div>
+	<canvas id="bob" class="techcanvas" style="position: absolute;" width="50" height="80">Test</canvas>
+
+	
+	
+</body>
+
+<!-- 
+	init()
+	progressTime()
+
+ -->
+ 
+ <!--
+	■▲▼◆⬣⬤▧
+	🤩😎
+	😀😃🙂☺️
+	😐😑😒😕
+	😔🙁😟☹️😧😣😓😫😩😠
+	😷🤒⬟🤕🤢😵🤧
+	👤💸📅🗓️📆📊🗃️🛠️🔨🔧🔩🏅
+	0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣🔟
+	🔼⏫
+	🟢🟡🔴
+https://altcodeunicode.com/alt-codes-geometric-shape-symbols/
+-->

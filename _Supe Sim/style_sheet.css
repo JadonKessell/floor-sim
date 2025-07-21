@@ -1,0 +1,355 @@
+
+	body {
+		font-family: "Lucida Console", monospace;
+		padding: 0px;
+		border: 0px;
+		padding: 0px;
+		margin: 8px;
+		/* background-color: #808590; */
+		white-space: nowrap
+	}
+
+	table {
+		margin: 0px;
+	}
+	td {
+
+		
+		vertical-align:top;
+		
+		align-items: center;
+	}
+
+	a {
+		background-color: #346fa6;
+		color: white;
+		text-align: center;
+		border-radius: 3px;
+		align-items: center;
+		font-size: 14px;
+		padding: 5px;
+		user-select: none;
+		font-size: 1.2em;
+	}
+	a:hover {
+		background-color: #875c2a;
+	}
+
+	.ovflX {
+		overflow-x: scroll;
+  		display: block;
+border: 1px solid #000;
+	}
+		
+	.container {
+		display: grid;
+border: 1px solid #000;
+		grid-template-columns: 1fr 2fr 1fr;
+
+		grid-template-areas:
+		't t d' 
+		'c c b1'
+		's s b1'
+		'g g b1'
+		'g g reA';
+
+	}
+
+	.g {
+		grid-area: g;
+	}
+	.t {
+		grid-area: t;
+	}
+	.d {
+		grid-area: d;
+	}
+	.c {
+		grid-area: c;
+	}
+	.s {
+		grid-area: s;
+	}
+	.c1h {
+		grid-area: c1h;
+		justify-self: center;
+	}
+	.c2h {
+		grid-area: c2h;
+  		justify-self: center;
+	}
+	.col1 {
+		grid-area: col1;
+	}
+	.col2 {
+		grid-area: col2;
+	}
+	.b1 {
+		grid-area: b1;
+	}
+	.reA {
+		grid-area: reA;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	.td_border {
+		margin: 0px;
+		padding: 0px;
+		border-style: solid;
+		border-width: 1px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+	}
+	.td_with_padding {
+		padding-left: 10px;
+		
+		
+	}
+
+	p {
+		text-align: right;
+		padding: 10px;
+	}
+
+	h1 {
+		text-align: center;
+		padding: 0px;
+		margin: 0px;
+	}
+	.tab_menu_table {
+		
+		background-color: #cccee0af;
+	}
+
+	.menu_bar {
+		font-family: 'Arial Narrow', Arial, sans-serif;
+		letter-spacing: -2px;
+	}
+	.assignButton {
+		background-color: #cccee0af; 
+		border: 1px;
+		color: rgb(8, 8, 8);
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		border-radius: 8px;
+	}
+	.assignButtonSEL {
+		background-color: #5ba5eb;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		border-radius: 8px;
+	}
+
+	.displayTableKey {
+		text-align: right;
+		margin: 0px;
+		border-style: solid;
+		border-width: 0px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+		white-space: pre-line;
+	}
+	.displayTableValue {
+		text-align: left;
+		margin: 0px;
+		border-style: solid;
+		border-width: 0px;
+		
+		vertical-align:top;
+		
+		align-items: center;
+		white-space: pre-line;
+	}
+	.gametable {
+		background-color: #346fa6;
+		border: 1px;
+		color: white;
+		text-align: center;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		
+	}
+	.fullscreen {
+		width: 100%;
+		height: 100%;
+	}
+
+	.mainStats {
+		
+		background-color: #444b59;
+		color: white;
+		padding: 3px;
+		text-align: center;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 0px;
+		width:auto;
+		white-space: pre-line;
+		padding: 0px 2px;
+		
+	}
+	.recentActions1 {
+		
+		background-color: #444b59;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		
+	}
+	.recentActions2 {
+		
+		background-color: #869fa4;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		
+	}
+	.techID {
+		
+		box-shadow: 10px 10px;
+		background-color: #79c9c1;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		width: 270px;
+		height: 50%;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		float: left;
+		
+	}
+	.techIcon {
+		
+		border: 1px solid black;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 20px;
+		padding: 4px 4px;
+		font-size: 20px;
+	}
+	.techIconTrainee {
+		background-color: #5f8ae5;
+	}
+	.techIconAssembler {
+		background-color: #ffffff;
+	}
+	.techIconTest {
+		background-color: #ffffff;
+		border: 4px double black;
+		padding: 1px 1px;
+	}
+	.techIconQT {
+		background-color: #6cde73;
+	}
+
+	.techcanvas {
+		background-color: azure;
+		border: 1px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		width: 40px;
+		height: 40px;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.sched {
+		background-color: azure;
+		border: 1px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.gamecanvas {
+		
+		background-color: azure;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		align-items: center;
+		font-size: 14px;
+		border-style:solid;
+		border-width:1px;
+		border-color:#000;
+	}
+	.gameP {
+		font-family: "Lucida Console", monospace;
+		text-align: center;
+		padding: 10px;
+	}
+
+	.invisTechTD {
+		
+		background-color: none;
+		border: 0px;
+		color: rgb(0, 0, 0);
+		text-align: center;
+		text-decoration: none;
+		align-items: center;
+	}
+	.assignedTechCanvas:hover {
+		background-color: lightblue;
+	}
+	.assignedTechCanvas {
+		border: 1px solid rgb(27, 59, 59);
+		border-radius: 30px;
+	}
+	.assignedToolCanvas {
+	
+		background-color: azure;
+	}
