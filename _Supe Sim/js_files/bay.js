@@ -10,13 +10,13 @@ function Bay() {
 			return true;
 		}
 		else {
-			addAct("!Can't assign another Tech on this tool!");
+			Company.addAct("!Can't assign another Tech on this tool!");
 			return false;
 		}
 	}
 	this.assignToolToBay = function(tool_i){
-		this.assignedTool = company.tool_backlog[tool_i];
-		pop_i(company.tool_backlog,tool_i);
+		this.assignedTool = Company.tool_backlog[tool_i];
+		pop_i(Company.tool_backlog,tool_i);
 	}
 	this.completeTool = function() {
 		completeTool(this.assignedTool.ben, this.assignedTool.startingShift)
@@ -41,15 +41,15 @@ function Bay() {
 function doWorkEachBay() {
 	let total_prog = 0;
 
-	for(let bay_i = 0; bay_i < company.bays.length; bay_i++) {
-		let tool = company.bays[bay_i].assignedTool;
+	for(let bay_i = 0; bay_i < Company.bays.length; bay_i++) {
+		let tool = Company.bays[bay_i].assignedTool;
 		if(tool) {
 			if(tool.inTest) {
 				//TEST
-				total_prog += doTechWork(1,bay_i,company.bays[bay_i].assignedTechs);
+				total_prog += doTechWork(1,bay_i,Company.bays[bay_i].assignedTechs);
 			} else if(tool.passedILQnum < 1 && tool.perc > 40 || tool.passedILQnum < 2 && tool.perc > 80) {
 				//ILQ
-					total_prog += doTechWork(2,bay_i,company.bays[bay_i].assignedTechs);
+					total_prog += doTechWork(2,bay_i,Company.bays[bay_i].assignedTechs);
 					if(tool.passedILQnum < 1 && tool.perc > 50) {
 						tool.passedILQnum++;
 					} else if(tool.passedILQnum < 2 && tool.perc > 90) {
@@ -57,13 +57,13 @@ function doWorkEachBay() {
 					}
 			} else {
 				//assembly
-				total_prog += doTechWork(-1,bay_i,company.bays[bay_i].assignedTechs);
+				total_prog += doTechWork(-1,bay_i,Company.bays[bay_i].assignedTechs);
 			}
 
 			
 		} else
 			if(chance(10)) {
-				company.bays[bay_i].assignedTool = new Tool();
+				Company.bays[bay_i].assignedTool = defaultNewToolProduct(1) ;
 			}
 
 	}

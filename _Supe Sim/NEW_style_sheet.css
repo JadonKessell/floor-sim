@@ -1,0 +1,228 @@
+:root {
+    --col_black: #14080E;
+    --col_dark_tone: #76748a;
+    --col_mid_tone: #b8cbcc;
+    --col_compl_tone: #ACC196;
+    --col_highl_tone: #e4d296;
+    --col_white_tone: #ffffff;
+    --col_blue_tone: #e6e7e7;
+}
+
+
+
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font: 1em sans-serif;
+    text-align: center;
+}
+
+* {
+    color: var(--col_black);
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    
+}
+
+td {
+    /* border: 1px var(--col_black) solid; */
+}
+
+#topbar_table {
+    width: 100%;
+    background-color: var(--col_white_tone);
+}
+
+#gameboard_table{
+
+    height: 100%;
+    width: 100%;
+    background-color: var(--col_white_tone);
+
+}
+#gameboard_table td {
+    
+    vertical-align: top;
+}
+
+#container_table{
+
+    height: 100%;
+    width: 100%;
+
+}
+
+#save_button:hover {
+    background-color: var(--col_highl_tone);
+}
+#load_button:hover {
+    background-color: var(--col_highl_tone);
+}
+#settings_button:hover {
+    background-color: var(--col_highl_tone);
+}
+
+
+.defaultButton {
+    border: 1px var(--col_black) solid;
+	border-radius: 8px;
+    user-select: none;
+}
+
+
+.defaultMenuBox {
+
+		background-color: var(--col_mid_tone);
+		border-radius: 8px;
+		margin: 5px;
+        padding: 5px;
+		/* box-shadow: 10px 10px;
+		background-color: #79c9c1;
+		border: 1px;
+		color: white;
+		text-align: center;
+		text-decoration: none;
+		border-radius: 8px;
+		width: 270px;
+		height: 50%;
+		align-items: center;
+		font-size: 14px;
+		margin: 1px;
+		white-space: pre-line;
+		float: left; */
+}
+
+
+#money {
+    padding: 10px;
+}
+
+#recent_actions {
+    height: 75%;
+	overflow-y: scroll;
+  	display: block;
+}
+
+#_js_recent_actions {
+}
+
+#calendar {
+    align-content: center;
+    text-align: center;
+    background-color: var(--col_highl_tone);
+}
+#eng {
+    
+}
+#support {
+    
+}
+#backlog {
+    border: 1px var(--col_black) solid;
+    border-radius: 8px;
+    float: left;
+    padding: 5px;
+}
+#_js_demand_graph {
+    border: 1px var(--col_black) solid;
+    border-radius: 8px;
+    float: right;
+    padding: 5px;
+}
+#demand {
+    border: 1px var(--col_black) solid;
+    border-radius: 8px;
+    float: right;
+    padding: 5px;
+}
+.event {
+    float: left;
+    background-color: var(--col_white_tone);
+    border: 1px var(--col_black) solid;
+    border-radius: 8px;
+    margin: 0px;
+    padding: 0px;
+    max-width:3em;
+    max-height:3em;
+    width: 3em;
+    height: 3em;
+    align-content: center;
+    
+    font-size: large;
+    text-align: center;
+}
+.product {
+    background-color: var(--col_blue_tone);
+    border: 1px var(--col_black) solid;
+    border-radius: 2px 25px;
+    margin: 3px;
+    padding: 2px;
+    max-width:5em;
+    max-height:5em;
+    width: 5em;
+    height: 5em;
+    align-content: center;
+    
+    font-size: large;
+    text-align: center;
+	white-space: pre-line;
+  box-shadow: 2px 3px #888888;
+}
+
+.tool {
+    background-color: var(--col_dark_tone);
+    color: var(--col_white_tone);
+    border: 1px var(--col_black) solid;
+    border-radius: 8px 8px 0px 0px;
+    margin: 3px;
+    padding: 2px;
+    max-width:5em;
+    max-height:5em;
+    width: 5em;
+    height: 5em;
+    align-content: center;
+    
+    font-size: large;
+    text-align: center;
+	white-space: pre-line;
+  box-shadow: 5px 8px #888888;
+}
+
+.tech {
+    /* background-color: var(--col_white_tone); */
+    background-image: linear-gradient(to bottom right, rgb(255, 255, 255), rgb(229, 234, 243), rgb(186, 201, 230));
+    border: 1px var(--col_black) solid;
+    border-radius: 1000px 1000px 0px 0px;
+    max-width:3em;
+    max-height:3em;
+    width: 3em;
+    height: 3em;
+    align-content: center;
+    
+    font-size: large;
+    text-align: center;
+	white-space: pre-line;
+}
+.tech:hover {
+    background-color: var(--col_highl_tone);
+}
+
+
+#_js_bay_table td {
+    
+    border: 1px var(--col_black) solid;
+    background-color: var(--col_white_tone);
+    padding: 8px;
+
+}
+#_js_bay_table{
+    
+    border-spacing: 0px;
+
+}

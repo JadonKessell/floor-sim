@@ -38,7 +38,7 @@ function Tech(name, level, exp, aP, tP, qtP, admP, aPG, tPG, qtPG, admPG, mor, l
 			this.qtProf=Math.min(8, this.qtProf+1);
 			s = s+ " +1 point to QT Prof."
 		}
-		addAct("🔼 " + this.name + " leveled up!" + s);
+		Company.addAct("🔼 " + this.name + " leveled up!" + s);
 		if(this.level % 4 == 0) this.morale--;
 	}
 	this.setMorale = function(num) {
@@ -68,40 +68,40 @@ function doTechWork(req_role, bay_i, techs_arr) {
 	
 	for(let i = 0; i < techs_arr.length; i++) {
 
-		company.techs[techs_arr[i]].lastProg = 0;
+		Company.techs[techs_arr[i]].lastProg = 0;
 		traineeCanWork = true;
 
 		//checking for trainee
-		if(company.techs[techs_arr[i]].role == 3) {
+		if(Company.techs[techs_arr[i]].role == 3) {
 			traineeCanWork = false;
 			for(let ii = 0; ii < techs_arr.length; ii++) {
 				//finding other techs that aren't a trainee
-				if(company.techs[techs_arr[ii]].role != 3) {
+				if(Company.techs[techs_arr[ii]].role != 3) {
 					traineeCanWork = true;
 				}
 			}
 		}
 		
 
-		if(traineeCanWork && req_role == -1 || company.techs[techs_arr[i]].role == req_role) {
+		if(traineeCanWork && req_role == -1 || Company.techs[techs_arr[i]].role == req_role) {
 			let varname = cheatArray[req_role];
 			if(req_role==-1)
 				varname = cheatArray[0];
-			prog = (company.techs[techs_arr[i]][varname] / 8)
+			prog = (Company.techs[techs_arr[i]][varname] / 8)
 			
-			prog = prog * (company.techs[i].morale / 10);
+			prog = prog * (Company.techs[i].morale / 10);
 
 
-			company.bays[bay_i].assignedTool.increasePerc(prog);
-			company.bays[bay_i].assignedTool.opProgressArr[0].perc += prog;
+			Company.bays[bay_i].assignedTool.increasePerc(prog);
+			Company.bays[bay_i].assignedTool.opProgressArr[0].perc += prog;
 
 
-			if(company.bays[bay_i].assignedTool.isComplete) {
-				company.bays[bay_i].completeTool();
+			if(Company.bays[bay_i].assignedTool.isComplete) {
+				Company.bays[bay_i].completeTool();
 			}
 
-			company.techs[techs_arr[i]].gainExp((prog * 3));
-			company.techs[techs_arr[i]].lastProg = prog;
+			Company.techs[techs_arr[i]].gainExp((prog * 3));
+			Company.techs[techs_arr[i]].lastProg = prog;
 		}
 		total_prog += prog;
 		prog = 0;
@@ -113,15 +113,15 @@ function doTechWork(req_role, bay_i, techs_arr) {
 
 
 function assignTech(tech_i, bay_i) {
-	if(company.techs[tech_i].assignedTo > -1)
+	if(Company.techs[tech_i].assignedTo > -1)
 		unassignTech(tech_i);
-	let isSuccess = company.bays[bay_i].assignTechToBay(tech_i);
+	let isSuccess = Company.bays[bay_i].assignTechToBay(tech_i);
 	if(isSuccess)
-		company.techs[tech_i].assignedTo = bay_i;
+		Company.techs[tech_i].assignedTo = bay_i;
 }
 
 function unassignTech(tech_i) {
-	let arr = company.bays[company.techs[tech_i].assignedTo].assignedTechs;
+	let arr = Company.bays[Company.techs[tech_i].assignedTo].assignedTechs;
 
 	for (let index = 0; index < arr.length; index++) {
 		if(arr[index]==tech_i)
@@ -183,44 +183,44 @@ console.log(a);
 }
 
 function hireTech(cost) {
-	company.techs.push(generateNewTech(0));
+	Company.techs.push(generateNewTech(0));
 	//Easter Egg
 	if(chance(3)) {
 
 		if(chance(20)) {
-			let n = company.techs.length-1
-			company.techs[n].assembProf=0;
-			company.techs[n].testProf=0;
-			company.techs[n].assembProfGrowth=9;
-			company.techs[n].testProfGrowth=9;
-			company.techs[n].name="Patrick Star";
+			let n = Company.techs.length-1
+			Company.techs[n].assembProf=0;
+			Company.techs[n].testProf=0;
+			Company.techs[n].assembProfGrowth=9;
+			Company.techs[n].testProfGrowth=9;
+			Company.techs[n].name="Patrick Star";
 		}
 		else if(chance(20)) {
-			let n = company.techs.length-1
-			company.techs[n].assembProf=0;
-			company.techs[n].testProf=8;
-			company.techs[n].assembProfGrowth=0;
-			company.techs[n].testProfGrowth=9;
-			company.techs[n].name="Cool Ron";
+			let n = Company.techs.length-1
+			Company.techs[n].assembProf=0;
+			Company.techs[n].testProf=8;
+			Company.techs[n].assembProfGrowth=0;
+			Company.techs[n].testProfGrowth=9;
+			Company.techs[n].name="Cool Ron";
 		}
 		else if(chance(20)) {
-			let n = company.techs.length-1
-			company.techs[n].assembProf=7;
-			company.techs[n].testProf=7;
-			company.techs[n].assembProfGrowth=1;
-			company.techs[n].testProfGrowth=1;
-			company.techs[n].name="Ron Shawn";
+			let n = Company.techs.length-1
+			Company.techs[n].assembProf=7;
+			Company.techs[n].testProf=7;
+			Company.techs[n].assembProfGrowth=1;
+			Company.techs[n].testProfGrowth=1;
+			Company.techs[n].name="Ron Shawn";
 		}
 		else if(chance(20)) {
-			let n = company.techs.length-1
-			company.techs[n].assembProf=2;
-			company.techs[n].testProf=7;
-			company.techs[n].assembProfGrowth=2;
-			company.techs[n].testProfGrowth=6;
-			company.techs[n].name="Other Sean";
+			let n = Company.techs.length-1
+			Company.techs[n].assembProf=2;
+			Company.techs[n].testProf=7;
+			Company.techs[n].assembProfGrowth=2;
+			Company.techs[n].testProfGrowth=6;
+			Company.techs[n].name="Other Sean";
 		}
 	}
-	company.addToMoney(-1*cost);
+	Company.addToMoney(-1*cost);
 }
 
 

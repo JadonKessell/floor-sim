@@ -6,7 +6,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="style_sheet.css">
+<!-- <link rel="stylesheet" href="style_sheet.css"> -->
+<link rel="stylesheet" href="NEW_style_sheet.css">
 
 
 <script>
@@ -21,11 +22,14 @@ let debugSetting = 0;
 let debug_FAST_MODE = false;
 let debugFlag1 = false;
 let userSel = 0;
+
 const maxTechsInBay = 3;
 const STARTING_MONEY = 25000;
 const COST_OF_NEW_BAY = 4000;
 const COST_OF_RAND_TECH = 4000;
 const TOOL_COMPLETION_MONEY = 20000;
+
+let Company; // created in init()
 
 let cvs;
 let ctxI;
@@ -66,121 +70,6 @@ let roleWageArray = [
 
 
 
-function defaultNewToolProduct (productID) {
-	let dueDate = 40;
-	let t = new ToolProduct(generateRandBen(), 0, [], 0, false, false,  company.shift, company.shift+dueDate, productID, "emtpy");
-	t.init();
-	return t;
-}
-
-function ToolProduct(ben, perc, shortages, findings, inTest, isComplete, startingShift, dueShift, productID, currentStatus, totalMaterialCost, netTotalCost) {
-	
-	this.perc = perc;
-	this.totalWP = company.products[productID].totalWP;
-	this.opProgressArr = [];
-
-	this.ben = ben;
-	this.shortages = shortages;
-	this.findings = findings;
-	this.inTest = inTest;
-	this.isComplete = isComplete;
-	this.startingShift = startingShift;
-	this.dueShift = dueShift;
-	this.productID = productID;
-	this.productIDName = company.products[productID].name;
-	this.currentStatus = currentStatus;
-	this.totalMaterialCost = totalMaterialCost;
-	this.netTotalCost = netTotalCost;
-
-	this.workstationsTotalWP = [];
-
-
-	this.init = function() {
-		Object.assign(this.opProgressArr, company.products[this.productID].opArr);
-		for (let index = 0; index < company.products[this.productID].numOfWorkstations; index++) {
-			this.workstationsTotalWP.push(0);
-		}
-
-		for (let index = 0; index < this.opProgressArr.length; index++) {
-			//adding perc value to each OP
-			this.opProgressArr[index].perc = 0;
-			//calc total for each workstation
-			this.workstationsTotalWP[this.opProgressArr[index].workstation - 1] += this.opProgressArr[index].wp;
-		}
-console.log(this);
-	}
-
-	this.print = function() {
-		let c = "A";
-		if (this.inTest) c = "T";
-		let testColor = "#d71";
-		let col = "#1c1";
-		if (this.inTest) col = testColor;
-		let barRatio = this.totalWP/150
-		
-		let s = [
-			"BEN", this.ben,
-			"Product ID", this.productIDName,
-			"Total WP", this.totalWP,
-			"Percent", c + Math.floor(this.perc)
-		]
-
-
-		let ss = drawSpansAndDrawBar(this.perc, this.totalWP, 150, "|", col, "#000") + "\n";
-		let sW = [];
-		sW.push("WS");
-		sW.push("WP");
-		for (let index = 0; index < this.workstationsTotalWP.length; index++) {
-			sW.push(index+1);
-			sW.push(drawSpansAndDrawBar(this.opProgressArr[index].perc, this.workstationsTotalWP[index], this.workstationsTotalWP[index]/barRatio, "|", col, "#000") + " " + this.workstationsTotalWP[index]);
-		}
-		ss += displayTable(sW, 2)
-
-		let sss = [
-			"Shortages", this.shortages,
-			"Total WP", this.totalWP,
-			"Starting Shift", this.startingShift
-		];
-		
-
-
-		return displayTable(s, 2) + ss + displayTable(sss, 2);
-	}
-	this.increasePerc = function(add) {
-		
-		this.perc = Math.min(this.perc + add,100);
-		if (this.perc >= 100) {
-			if(this.inTest) {
-				if(this.shortages > 0) this.shortages--;
-				else this.isComplete = true;
-			}
-			else {
-				this.inTest = true;
-				this.perc -= 100
-			}
-		} else if (this.perc < 0) {
-			this.perc = 0;
-		}
-
-	}
-	this.increasePercInOP = function(add) {
-		
-		this.perc = Math.min(this.perc + add,100);
-		if (this.perc >= 100) {
-			if(this.inTest) {
-				if(this.shortages > 0) this.shortages--;
-				else this.isComplete = true;
-			}
-			else {
-				this.inTest = true;
-				this.perc -= 100
-			}
-		} else if (this.perc < 0) {
-			this.perc = 0;
-		}
-
-	}
-}
 
 
 
@@ -196,34 +85,6 @@ console.log(this);
 
 
 
-
-
-
-
-function payForRandShortage() {
-	/*
-	let rand = Math.floor(Math.random() * company.tools.length)
-	
-	if(company.tools[rand].shortages > 0) {
-		company.tools[rand].shortages--;
-		company.money = company.money - 1000;
-		addAct("Paid for shortage on " + company.tools[rand].ben);
-	}
-	redraw();*/
-		addAct("Currently removed feature");
-}
-
-function buyNewBay() {
-	company.addToMoney(-1*COST_OF_NEW_BAY);
-	company.bays.push(new Bay());
-	
-	if(menu_sel_col_1_tab_num==2)
-		drawNewGUI("newGUI");
-	if(menu_sel_col_2_tab_num==2)
-		drawNewGUI("techs");
-
-	redraw();
-}
 
 
 let tttt = null;
@@ -261,14 +122,14 @@ function drawCompanyGUI() {
 	"<td"+c+">Products</td>"+
 	"<td"+c+">Backlog</td>"+
 	
-	"</tr><tr><td>" + formatMoney(company.money)+
-	"<td"+c+">" + company.quarter+"</td>" + 
-	"<td"+c+">" + company.shift+"</td>" + 
-	"<td"+c+">" + company.time+"</td>" + 
-	"<td"+c+">" + company.techs.length + "</td>" + 
-	"<td"+c+">" + company.bays.length +"</td>" + 
-	"<td"+c+">" + company.products.length +"</td>" + 
-	"<td"+c+">" + company.tool_backlog.length +"</td>" + 
+	"</tr><tr><td>" + formatMoney(Company.money)+
+	"<td"+c+">" + Company.quarter+"</td>" + 
+	"<td"+c+">" + Company.shift+"</td>" + 
+	"<td"+c+">" + Company.time+"</td>" + 
+	"<td"+c+">" + Company.techs.length + "</td>" + 
+	"<td"+c+">" + Company.bays.length +"</td>" + 
+	"<td"+c+">" + Company.products.length +"</td>" + 
+	"<td"+c+">" + Company.tool_backlog.length +"</td>" + 
 	"</tr>";
 
 
@@ -286,8 +147,8 @@ function drawRecentActions () {
 let s = "\nRecent Actions:<hr><span style='color:#aaa'>";
 
 	
-	for(let i = company.recentActions.length-1; i > -1; i--) {
-		s=s +"<div class='recentActions2'>"+ company.recentActions[i] +"</div>";
+	for(let i = Company.recentActions.length-1; i > -1; i--) {
+		s=s +"<div class='recentActions2'>"+ Company.recentActions[i] +"</div>";
 	}
 	
 document.getElementById("recentActions").innerHTML = s + "</span>";
@@ -308,10 +169,10 @@ function updateCalendar() {
 	let x = 0;
 	let y = 17;
 	let intvl = 4;
-	let payrollNext = intvl * (((14 - (company.shift%14)) * 12) - company.time);
+	let payrollNext = intvl * (((14 - (Company.shift%14)) * 12) - Company.time);
 
-	let toolNext = intvl * (((6 - (company.shift % 6)) * 12) - company.time);
-	let toolNext2 = intvl * (((5 - (company.shift % 5)) * 12) - company.time);
+	let toolNext = intvl * (((6 - (Company.shift % 6)) * 12) - Company.time);
+	let toolNext2 = intvl * (((5 - (Company.shift % 5)) * 12) - Company.time);
 
 	ctxI.font = "18px Lucida Console";
 	ctxI.fillStyle = "#ccf";
@@ -320,7 +181,7 @@ function updateCalendar() {
 	for (let i = 0; i < 15; i++) {
 		//ctxI.fillText("|", i*intvl,y);
 		
-		ctxI.rect(i*intvl*12-(company.time*intvl), 0, intvl*12, 22);
+		ctxI.rect(i*intvl*12-(Company.time*intvl), 0, intvl*12, 22);
 		ctxI.stroke();
 	}
 	ctxI.fillStyle = "#000";
@@ -369,12 +230,12 @@ function switchPage(colNum, pageName) {
 function updateBayGUI(eleID) {
 	let pb;
 		
-		for(let i = 0; i < company.bays.length; i++) {
+		for(let i = 0; i < Company.bays.length; i++) {
 				
 				drawINDVCanvasGUI(i,eleID);
 				pb =  document.getElementById("bay"+eleID+i);
-			if(company.bays[i].assignedTool != null) {
-				pb.innerHTML = "Bay "+(i+1)+"<br>" + company.bays[i].assignedTool.print();
+			if(Company.bays[i].assignedTool != null) {
+				pb.innerHTML = "Bay "+(i+1)+"<br>" + Company.bays[i].assignedTool.print();
 			} else
 				pb.innerHTML = "Bay "+(i+1)+"<br>BEN: ________";
 		}
@@ -384,17 +245,17 @@ function updateBayGUI(eleID) {
 
 
 function drawNewGUI(eleID) {
-	if(company.bays.length > 0) {
+	if(Company.bays.length > 0) {
 		let sss = "<tr>";
 
-		for(let i = 0; i < company.bays.length; i++) {
+		for(let i = 0; i < Company.bays.length; i++) {
 
-			sss=sss+"<td class='gametable'><p class='gameP' id='bay"+ eleID + i +"'>Bay "+(i+1)+"<br>BEN: ________</p></td>";
+			sss=sss+"<td class='gametable'><p class='gameP' id='bay"+ eleID + i +"'>Bay "+(i+1)+"<br>BEN: ________</div></td>";
 			
 		}
 		sss=sss+"</tr><tr>";
 
-		for(let i = 0; i < company.bays.length; i++) {
+		for(let i = 0; i < Company.bays.length; i++) {
 
 			sss=sss+"<td class='invisTechTD'>"+
 			"<canvas class='assignedTechCanvas' id='t" + eleID + i + "' width='44' height='75'></canvas>"+
@@ -425,9 +286,9 @@ function drawINDVCanvasGUI(i, eleID) {
 
 		ctxI.clearRect(0, 0, cvs.width, cvs.height);
 
-		if(aa < company.bays[i].assignedTechs.length) {
-			let ii = company.bays[i].assignedTechs[aa];
-			drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctxI, company.techs[ii].lastProg,company.techs[ii].name);
+		if(aa < Company.bays[i].assignedTechs.length) {
+			let ii = Company.bays[i].assignedTechs[aa];
+			drawTechShape(22, 42,Company.techs[ii].morale,Company.techs[ii].role, ctxI, Company.techs[ii].lastProg,Company.techs[ii].name);
 
 			if(userSel==aa) cvs.style.backgroundColor = "yellow";
 			else cvs.style.backgroundColor = "";
@@ -577,8 +438,8 @@ function drawTechShape(x, y, morale, role, ctx, lastPerc, name) {
 
 
 function completeTool(ben, startingShift) {
-	addAct(ben + " was completed in " + (company.shift - startingShift)+" shift(s). Added "+TOOL_COMPLETION_MONEY+" to Money.")
-	company.addToMoney(TOOL_COMPLETION_MONEY);
+	Company.addAct(ben + " was completed in " + (Company.shift - startingShift)+" shift(s). Added "+TOOL_COMPLETION_MONEY+" to Money.")
+	Company.addToMoney(TOOL_COMPLETION_MONEY);
 }
 
 
@@ -599,18 +460,48 @@ let cheatArray = [
 function drawProductPanel (eleID) {
 	let s = "<table>";
 
-	for(let i = 0; i < company.products.length; i++) {
-		
+	for(let i = 0; i < Company.products.length; i++) {
+        
+        let opA = [];
+		for (let ii = 0; ii < Company.products[i].opArr.length; ii++) {
+			opA.push("");
+			opA.push(Company.products[i].opArr[ii].print());
+		}
+
+
 		let array = [
-		"Num of OPs", company.products[i].opArr.length,
-		"Num of Sections", company.products[i].numOfSections,
-		"Total WP", company.products[i].totalWP,
-		"BOM qty", company.products[i].bom.length,
-		"Total Material Cost", company.products[i].opArr.length,
-		"Net Total Cost", company.products[i].opArr.length
+		"Num of OPs | Parts | Sections", Company.products[i].opArr.length + " | " + Company.products[i].bom.length + " | " + Company.products[i].numOfSections,
+		
+		"Total WP", Company.products[i].totalWP,
+		"Total Material Cost", Company.products[i].totalMaterialCost,
+		"Net Total Cost", Company.products[i].netTotalCost,
+        "BOM", Company.products[i].bom,
+        "OP Arr", opA
+
 		];
 		
-		s = s + "<td class='gametable' style='float:left;'>" + company.products[i].name + displayTable(array,2) + "</td>";
+		s = s + "<td class='gametable' style='float:left;'>" + Company.products[i].name + " [" + Company.products[i].difficultyLevel + "]" + displayTable(array,2) + "</td>";
+	}
+
+	document.getElementById(eleID).innerHTML = s + "</table>";
+}
+
+function drawProductPanelUNDETAILED (eleID) {
+	let s = "<table>";
+
+	for(let i = 0; i < Company.products.length; i++) {
+		
+		let array = [
+		"Diff", Company.products[i].difficultyLevel,
+		"Num of OPs", Company.products[i].opArr.length,
+		"Num of Sections", Company.products[i].numOfSections,
+		"Total WP", Company.products[i].totalWP,
+		"BOM qty", Company.products[i].bom.length,
+		"Total Material Cost", Company.products[i].totalMaterialCost,
+		"Net Total Cost", Company.products[i].netTotalCost
+		];
+		
+		s = s + "<td class='gametable' style='float:left;'>" + Company.products[i].name + displayTable(array,2) + "</td>";
 	}
 
 	document.getElementById(eleID).innerHTML = s + "</table>";
@@ -624,13 +515,13 @@ let debug_console;
 
 
 function promoteQT(i) {
-	company.techs[i].role = 2;
-	company.techs[i].wage += 1;
+	Company.techs[i].role = 2;
+	Company.techs[i].wage += 1;
 	redraw();
 }
 function promoteTest(i) {
-	company.techs[i].role = 1;
-	company.techs[i].wage += 1;
+	Company.techs[i].role = 1;
+	Company.techs[i].wage += 1;
 	redraw();
 }
 
@@ -645,20 +536,20 @@ function drawPoints(num){
 function drawTechPanel(eleID){
 	let s = "<tr>";
 
-	for(let i = 0; i < company.techs.length; i++) {
+	for(let i = 0; i < Company.techs.length; i++) {
 		
 		let sps = " <span style='font-size:60%'>(";
 		let spe = ")</span>";
 		
 		let array = [
-		"Name", company.techs[i].name + " " + drawMoraleAsString (company.techs[i].morale, company.techs[i].role, company.techs[i].vari),
-		"Role", roleArray[company.techs[i].role],
-		"Level", drawSpansAndDrawBar(company.techs[i].experiencePerc, 100, 48, "|", "#5df", "#000") + sps + Math.floor(company.techs[i].experiencePerc) + spe,
-		"Assembly Prof", company.techs[i].assembProf + sps + company.techs[i].assembProfGrowth + spe,
-		"Test Prof", company.techs[i].testProf + sps + company.techs[i].testProfGrowth + spe,
-		"QT Prof", company.techs[i].qtProf + sps + company.techs[i].qtProfGrowth + spe,
-		"Admin Prof", company.techs[i].adminProf + sps + company.techs[i].adminProfGrowth + spe,
-		"Wage", company.techs[i].wage
+		"Name", Company.techs[i].name + " " + drawMoraleAsString (Company.techs[i].morale, Company.techs[i].role, Company.techs[i].vari),
+		"Role", roleArray[Company.techs[i].role],
+		"Level", drawSpansAndDrawBar(Company.techs[i].experiencePerc, 100, 48, "|", "#5df", "#000") + sps + Math.floor(Company.techs[i].experiencePerc) + spe,
+		"Assembly Prof", Company.techs[i].assembProf + sps + Company.techs[i].assembProfGrowth + spe,
+		"Test Prof", Company.techs[i].testProf + sps + Company.techs[i].testProfGrowth + spe,
+		"QT Prof", Company.techs[i].qtProf + sps + Company.techs[i].qtProfGrowth + spe,
+		"Admin Prof", Company.techs[i].adminProf + sps + Company.techs[i].adminProfGrowth + spe,
+		"Wage", Company.techs[i].wage
 		];
 		
 		s = s + "<td>" + displayTable(array) + "</td>";
@@ -724,10 +615,10 @@ function drawMoraleAsString (m, role, vari) {
 
 
 function correctTechIndexNumbers(index) {
-	for (let i = 0; i < company.bays.length; i++) {
-		for (let ii = 0; ii < company.bays[i].assignedTechs.length; ii++) {
-			if(company.bays[i].assignedTechs[ii] > index) {
-				company.bays[i].assignedTechs[ii]--;
+	for (let i = 0; i < Company.bays.length; i++) {
+		for (let ii = 0; ii < Company.bays[i].assignedTechs.length; ii++) {
+			if(Company.bays[i].assignedTechs[ii] > index) {
+				Company.bays[i].assignedTechs[ii]--;
 			}	
 		}
 		
@@ -756,25 +647,25 @@ function mousetest(event) {
 	
 	ctx.clearRect(0, 0, cav.width, cav.height);
 	let ii = userSel;
-	drawTechShape(22, 42,company.techs[ii].morale,company.techs[ii].role, ctx, company.techs[ii].lastProg,company.techs[ii].name);
+	drawTechShape(22, 42,Company.techs[ii].morale,Company.techs[ii].role, ctx, Company.techs[ii].lastProg,Company.techs[ii].name);
 
 	
 	/*
 	let pd = document.getElementById("productData");
-	pd.innerHTML = company.products[0].print();
+	pd.innerHTML = Company.products[0].print();
 	*/
 }
 
 
 </script>
 
-<script type="text/csv" src="/roleArray.csv" id="rA"></script>
 
 <script src="js_files/names.js"></script>
-<script src="js_files/company.js"></script>
+<script src="js_files/Company.js"></script>
 <script src="js_files/bay.js"></script>
 <script src="js_files/tech.js"></script>
 <script src="js_files/generalHelperFunctions.js"></script>
+<script src="js_files/btn_functions.js"></script>
 <script src="js_files/tool.js"></script>
 <script src="js_files/csv.js"></script>
 <script src="js_files/product.js"></script>
@@ -785,46 +676,549 @@ function mousetest(event) {
 </head>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <body id="body" onmousemove="mousetest(event)" onload="init()">
-	<div class="container">
-		<h1 class="t">Supe Simulator</h1>
-		<div class="d recentActions1" onclick="toggleSpeed()">debug SuperSpeed</div>
-		<div id="mainStats_gui" colspan="2" class="c mainStats" style="font-size: 1.1em;" ></div>
+	<table id="container_table">
+        <tr style="height: 5%;">
+            <td>
+                <table id="topbar_table">
+                    <tr>
+                        <td style="width: 80%;">
+                            <h1 class="t">Supe Simulator</h1>
+                        </td>
+                        <td id="save_button" class="defaultButton">
+                            <div>save</div>
+                        </td>
+                        <td id="load_button" class="defaultButton">
+                            <div>load</div>
+                        </td>
+                        <td id="settings_button" class="defaultButton">
+                            <div>settings</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>
+            <table id="gameboard_table">
+                <tr>
+                    <td style="width: 10%;">
+                        <div id="money" class="defaultMenuBox">
+                            <h3>Money</h3>
+                            <div>25,000</div>
+                            <div>[Graph]</div>
+                            <br>
+                            <div><strong>Shift <span>23</span> | <span>12:45</span></strong></div>
+                            <div><strong>Year XX<span>03</span> | <span>QDEC</span></strong></div>
+                        </div>
+                        <div id="recent_actions" class="defaultMenuBox">
+                            <h3>Recent Actions</h3>
+                            <div id="_js_recent_actions">
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                                <p>🔼Tech Level Up!</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td colspan="2">
+                                    <div id="calendar" class="defaultMenuBox">
+                                        <div id="backlog">
+                                            <h3>Backlog</h3>
+                                            <p>4</p>
+                                        </div>
+                                        <p class="event" style="width: 1em;"></p>
+                                        <p class="event">3 [--] launch</p>
+                                        <p class="event">event</p>
+                                        <p class="event">event</p>
+                                        <p class="event">event</p>
+                                        <p class="event">💸</p>
+                                        <div id="demand">
+                                            <h3>Demand</h3>
+                                        </div>
+                                        <div id="_js_demand_graph">
+                                            <div>[Graph]</div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 80%;">
+                                    <div id="eng" class="defaultMenuBox">
+                                        <h3>ENG</h3>
+                                        <h6>Products</h6>
+                                        <table>
+                                            <tr>
+                                                <td><div class="product">WE-RE
+                                                    4 | 4 | 6
+                                                    12 | 7 | 64
+                                                    😑😒😕
+                                                </div></td>
+                                                <td>
+                                                    <div class="product">EE-GD
+                                                    1 | 7 | 3
+                                                    6 | 43 | 90
+                                                    😑😒😕
+                                                </div></td>
+                                                <td>
+                                                    <div class="product">XB-WI
+                                                    4 | 4 | 6
+                                                    4 | 4 | 6
+                                                    😑😒😕
+                                                </div></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </td>
+                                <td style="width: 20%;">
+                                    <div id="support" class="defaultMenuBox">
+                                        <h3>SUPPORT</h3>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div id="mfg" class="defaultMenuBox">
+                                        <h3>MFG</h3>
+                                        <h6>Bays</h6>
+                                        <table id="_js_bay_table">
+                                            <tr>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                    <div class="tool">WE-RE
+                                                    |||||||||||||||||||
+                                                    12 | 7 | 64
+                                                    
+                                                    </div>
+                                                    <div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <h6>Techs</h6>
+                                        <table>
+                                            <tr>
+                                                <td><div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div></td>
+                                                <td><div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div></td>
+                                                <td><div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div></td>
+                                                <td><div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div></td>
+                                                <td><div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div></td>
+                                                <td><div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div></td>
+                                                <td><div class="tech">😕
+                                                    <p style="font-size: .5em;">Sarah
+                                                    12 | 35 | 2</p>
+                                                </div></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
 
-		<canvas id="schedule" width='1000' height='22' class="s sched"></canvas>
-<table class="g">
-	<tr><td>
-		<ul class="c1h">
-			<a onclick="switchPage(1,'Techs')" style="float:left">Techs</a>
-			<a onclick="switchPage(1,'Products')" style="float:left">Products</a>
-			<a onclick="switchPage(1,'Bays')" style="float:left">Bays</a>
-		</ul>
-		</td>
-		<td>
-		<table id="newGUI" class="col1 ovflX"></table>
-	</td>
-		</tr>
-		<tr>
-		<td>
-			<ul class="c2h">
-				<a onclick="switchPage(2,'Techs')" style="float:left">Techs</a>
-				<a onclick="switchPage(2,'Products')" style="float:left">Products</a>
-				<a onclick="switchPage(2,'Bays')" style="float:left">Bays</a>
-			</ul>
-		</td>
-		<td>
-			<table id="techs" class="col2 ovflX"></table>
-		</td></tr>
-	</table>
-		<p class="b1 gametable"  id="gui2"></p>
-		<div class="reA recentActions1" style="overflow-y: scroll;height: 400px;white-space: pre-line;" id="recentActions"></div>
+                        </table>
 
-		<div id="controlButtons">Tech control buttons</div>
-	</div>
-	<canvas id="bob" class="techcanvas" style="position: absolute;" width="50" height="80">Test</canvas>
+                    </td>
+                </tr>
 
-	
-	
+            </table>
+        </td></tr>
+    </table>
 </body>
 
 <!-- 
@@ -845,4 +1239,45 @@ function mousetest(event) {
 	🔼⏫
 	🟢🟡🔴
 https://altcodeunicode.com/alt-codes-geometric-shape-symbols/
+-->
+
+
+<!--
+<div class="container">
+		<h1 class="t">Supe Simulator</h1>
+		<div class="d recentActions1" onclick="toggleSpeed()">debug SuperSpeed</div>
+		<div id="mainStats_gui" colspan="2" class="c mainStats" style="font-size: 1.1em;" ></div>
+
+		<canvas id="schedule" width='1000' height='22' class="s sched"></canvas>
+        <table class="g">
+            <tr>
+                <td>
+                <ul class="c1h">
+                    <a onclick="switchPage(1,'Techs')" style="float:left">Techs</a>
+                    <a onclick="switchPage(1,'Products')" style="float:left">Products</a>
+                    <a onclick="switchPage(1,'Bays')" style="float:left">Bays</a>
+                </ul>
+                </td>
+                <td>
+                    <table id="newGUI" class="col1 ovflX"></table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <ul class="c2h">
+                        <a onclick="switchPage(2,'Techs')" style="float:left">Techs</a>
+                        <a onclick="switchPage(2,'Products')" style="float:left">Products</a>
+                        <a onclick="switchPage(2,'Bays')" style="float:left">Bays</a>
+                    </ul>
+                </td>
+                <td>
+                    <table id="techs" class="col2 ovflX"></table>
+                </td>
+            </tr>
+        </table>
+	    <p class="b1 gametable"  id="gui2"></div>
+	    <div class="reA recentActions1" style="overflow-y: scroll;height: 400px;white-space: pre-line;" id="recentActions"></div>
+
+	    <div id="controlButtons">Tech control buttons</div>
+	</div>
 -->

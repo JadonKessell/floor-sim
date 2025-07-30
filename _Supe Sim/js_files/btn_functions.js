@@ -1,9 +1,9 @@
 
 function btn_fireTech(index) {
 	unassignTech(index);
-	pop_i(company.techs, index);
-	for(let i = 0; i < company.techs.length; i++) {
-		company.techs[i].setMorale(-1);
+	pop_i(Company.techs, index);
+	for(let i = 0; i < Company.techs.length; i++) {
+		Company.techs[i].setMorale(-1);
 	}
 	correctTechIndexNumbers(index);
 	redraw();
@@ -20,8 +20,8 @@ function btn_assignTech(tech_i, bay_i) {
 
 
 function btn_giveTechRaise(index) {
-	company.techs[index].wage++;
-	company.techs[index].setMorale(5);
+	Company.techs[index].wage++;
+	Company.techs[index].setMorale(5);
 	
 	redraw();
 
@@ -39,5 +39,22 @@ function btn_changeSelTech(num) {
 
 function btn_hireTech(cost) {
 	hireTech(cost);
+	redraw();
+}
+
+
+
+
+
+
+function buyNewBay() {
+	Company.addToMoney(-1*COST_OF_NEW_BAY);
+	Company.bays.push(new Bay());
+	
+	if(menu_sel_col_1_tab_num==2)
+		drawNewGUI("newGUI");
+	if(menu_sel_col_2_tab_num==2)
+		drawNewGUI("techs");
+
 	redraw();
 }

@@ -4,26 +4,28 @@ function init () {
 	debug_console = document.getElementById("debug_console");
 
 	
-	company.products.push(generateNewProduct("easy"));
-	company.products.push(generateNewProduct("easy"));
-	company.products.push(generateNewProduct("med"));
-	company.products.push(generateNewProduct("med"));
-	company.products.push(generateNewProduct("hard"));
+	Company = new CompanyOBJ(STARTING_MONEY, 0, [], [], [], [], [], [], [], 1, 1, 0);
+
+	Company.products.push(generateNewProduct("easy"));
+	Company.products.push(generateNewProduct("easy"));
+	Company.products.push(generateNewProduct("med"));
+	Company.products.push(generateNewProduct("med"));
+	Company.products.push(generateNewProduct("hard"));
 
 
-	company.tool_backlog.push(defaultNewToolProduct(0));
-	company.tool_backlog.push(defaultNewToolProduct(0));
-	company.bays.push(new Bay());
-	company.bays.push(new Bay());
+	Company.tool_backlog.push(defaultNewToolProduct(0));
+	Company.tool_backlog.push(defaultNewToolProduct(0));
+	Company.bays.push(new Bay());
+	Company.bays.push(new Bay());
 	hireTech(0);
 	hireTech(0);
 	hireTech(0);
-	company.techs[2].role = 3;
+	Company.techs[2].role = 3;
 	assignTech(0, 0);
 	assignTech(1, 0);
 	assignTech(2, 0);
-	company.bays[0].assignToolToBay(0);
-	company.bays[1].assignToolToBay(0);
+	Company.bays[0].assignToolToBay(0);
+	Company.bays[1].assignToolToBay(0);
 	
 	let f="<button onclick='newTest()'>newtest</button><button onclick='buyNewBay()'>Buy new bay for "+formatMoney(COST_OF_NEW_BAY)+"</button>\n<button onclick='btn_hireTech("+COST_OF_RAND_TECH+")'>Hire new random tech for "+formatMoney(COST_OF_RAND_TECH)+"</button>"
 
@@ -31,21 +33,9 @@ function init () {
 
 	drawControlButtons(0);
 
-	main_loop = setInterval(progressTime, 1000); //1000 is 1 sec
+	main_loop = setInterval(updateAll, 1000); //1000 is 1 sec
 
 
-
-// 	console.log(createArrayFromCSV("roleTitle,roleBaseWage"+"\n"+
-// "Assembler,12"+"\n"+
-// "Test Tech,16"+"\n"+
-// "Quality Tech,14"+"\n"+
-// "Trainee,10"+"\n"+
-// "PCFS,16"+"\n"+
-// "Lead,16"+"\n"+
-// "MFE,20"))
-	
-	console.log(createArrayFromCSV(document.getElementById("rA").text))
-	console.log(document.getElementById("rA").innerHTML)
 
 
 
@@ -83,3 +73,8 @@ function redraw() {
 }
 
 
+
+function updateAll() {
+	Company.update();
+	redraw()
+}

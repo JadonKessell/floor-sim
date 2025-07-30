@@ -62,7 +62,7 @@ function OP (wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr) {
 
 		let arr = [
 			"WP", this.wp,
-			"EFF", this.eff,
+			"EFF", this.eff + "%",
 			"CL Pote", this.commLogPote,
 			"WKSTN", this.workstation,
 			"Type", this.typeOfOP,
@@ -71,11 +71,23 @@ function OP (wp, eff, com, wkstn, type, redMor, progSec, reqRole, partsArr) {
 			"Requied Role", this.requiredRole,
 			"Pote Savings", this.potentialSavings,
 
-			"Parts", this.partsArr.length +"\n" + displayTable(ptA)
+			"Parts", this.partsArr.length +"\n" + ptA
 
 		];
 		return displayTable(arr);
 	}
+
+	this.display = function() {
+		let s = "";
+		s = s + this.wp;
+		this.eff;
+		this.commLogPote;
+		this.workstation;
+		this.typeOfOP;
+		this.reduceMorale;
+		this.progressSection;
+		this.requiredRole;
+		this.potentialSavings;
+		this.partsArr;
+	}
 }
-
-
